@@ -35,6 +35,3 @@ begin
   end loop;
 end $$;
 
--- After creating your user in Authentication > Users, authorise them (replace the email):
--- insert into public.app_users (user_id, note)
--- select id, 'Nodal officer' from auth.users where email = 'you@example.com';
