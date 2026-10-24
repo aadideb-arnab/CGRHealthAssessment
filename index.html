@@ -1,0 +1,2046 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chandannagar SD Hospital — Staff Health, Well-being & Occupational Health Programme</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<style>
+/* ===== Material Design 3 (Material You) design tokens ===== */
+:root{
+  --primary:#1257B8;--on-primary:#FFFFFF;--primary-container:#DCE8FF;--on-primary-container:#062E70;
+  --secondary:#3E6DA8;--on-secondary:#FFFFFF;--secondary-container:#DFEAFB;--on-secondary-container:#122A4C;
+  --tertiary:#0E7C93;--tertiary-container:#D3F1F6;--on-tertiary-container:#04333D;
+  --error:#B3261E;--on-error:#FFFFFF;--error-container:#F9DEDC;--on-error-container:#410E0B;
+  --background:#FFFFFF;--on-background:#10131A;
+  --surface:#FFFFFF;--on-surface:#10131A;--surface-variant:#EAF1FC;--on-surface-variant:#45536E;
+  --surface-high:#F3F7FE;
+  --outline:#8592AD;--outline-variant:#D6E1F4;
+  --green:#2E6B34;--green-container:#D7F0DA;
+  --yellow:#8A6D00;--yellow-container:#FFF0BD;
+  --orange:#A3480A;--orange-container:#FFE0C4;
+  --red:#B3261E;--red-container:#F9DEDC;
+  --grad:linear-gradient(135deg,#0A4FC4 0%,#1976D2 48%,#42A5F5 100%);
+  --el0:none;
+  --el1:0px 1px 3px 1px rgba(10,40,90,.13),0px 1px 2px 0px rgba(10,40,90,.22);
+  --el2:0px 2px 6px 2px rgba(10,40,90,.14),0px 1px 2px 0px rgba(10,40,90,.24);
+  --el3:0px 4px 8px 3px rgba(10,40,90,.16),0px 1px 3px 0px rgba(10,40,90,.26);
+  --ease:cubic-bezier(0.2,0,0,1);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:"Google Sans","Segoe UI",Roboto,Inter,Arial,sans-serif;background:linear-gradient(180deg,#EAF2FF 0%,#F7FAFF 22%,#FFFFFF 46%);background-attachment:fixed;color:var(--on-background);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:inherit;letter-spacing:-.01em}
+button{font-family:inherit}
+a{color:var(--primary)}
+
+/* ---- Boot / loading screen ---- */
+.boot-screen{position:fixed;inset:0;background:var(--background);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:999;transition:opacity .45s var(--ease),visibility .45s var(--ease)}
+.boot-screen.hide{opacity:0;visibility:hidden}
+.boot-screen .brandmark{width:64px;height:64px;border-radius:20px;background:var(--grad);color:var(--on-primary);display:grid;place-items:center;font-weight:800;font-size:24px;box-shadow:var(--el2)}
+.boot-screen p{color:var(--on-surface-variant);font-size:13px;font-weight:600;letter-spacing:.2px}
+.spinner{width:26px;height:26px;border-radius:50%;border:3px solid var(--secondary-container);border-top-color:var(--primary);animation:spin .8s linear infinite}
+.spinner.lg{width:48px;height:48px;border-width:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.linear{height:4px;width:100%;background:var(--surface-variant);overflow:hidden;position:relative}
+.linear span{position:absolute;left:-40%;top:0;width:40%;height:100%;background:var(--primary);animation:lin 1.1s var(--ease) infinite;border-radius:2px}
+@keyframes lin{0%{left:-40%}100%{left:100%}}
+
+/* ---- App shell ---- */
+.app-shell{display:flex;min-height:100vh}
+.rail{width:96px;flex:0 0 96px;background:var(--surface);display:flex;flex-direction:column;align-items:center;padding:18px 8px 12px;gap:2px;box-shadow:var(--el1),6px 0 16px -6px rgba(10,40,90,.22);z-index:40;position:sticky;top:0;height:100vh;overflow-y:auto;transition:left .28s var(--ease)}
+.rail::-webkit-scrollbar{width:0}
+.rail-logo{width:46px;height:46px;border-radius:16px;background:var(--grad);color:var(--on-primary);display:grid;place-items:center;font-weight:800;font-size:17px;margin-bottom:16px;box-shadow:var(--el1);flex:0 0 auto}
+.rail-item{width:76px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px 10px;border-radius:16px;cursor:pointer;color:var(--on-surface-variant);transition:color .2s var(--ease);position:relative;-webkit-tap-highlight-color:transparent;user-select:none}
+.rail-item .pill{width:58px;height:32px;border-radius:16px;display:grid;place-items:center;transition:background .2s var(--ease),transform .15s var(--ease);position:relative;overflow:hidden}
+.rail-item .pill svg{width:22px;height:22px;transition:transform .2s var(--ease)}
+.rail-item:hover .pill{background:rgba(18,87,184,.10)}
+.rail-item:hover .pill svg{transform:scale(1.08)}
+.rail-item.active .pill{background:var(--secondary-container)}
+.rail-item.active{color:var(--on-secondary-container)}
+.rail-item span{font-size:10.5px;font-weight:700;letter-spacing:.1px;text-align:center;line-height:1.15}
+.rail-backdrop{display:none}
+
+.main-col{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:30;background:#fff;box-shadow:var(--el1),0 8px 18px -8px rgba(10,40,90,.24);display:flex;align-items:center;gap:14px;padding:10px 22px;min-height:64px}
+.topbar::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:3px;background:var(--grad)}
+.icon-btn.hamburger{display:none}
+.topbar .title-block{display:flex;flex-direction:column;line-height:1.2;white-space:nowrap}
+.topbar .title-block b{font-size:16px;font-weight:800}
+.topbar .title-block span{font-size:11px;color:var(--on-surface-variant);font-weight:600}
+.search-field{flex:1;max-width:520px;display:flex;align-items:center;gap:10px;background:var(--surface-variant);border-radius:28px;padding:0 16px;height:44px;transition:box-shadow .2s var(--ease),background .2s var(--ease);position:relative}
+.search-field:focus-within{box-shadow:0 0 0 2px var(--primary);background:#fff}
+.search-field svg{width:19px;height:19px;color:var(--on-surface-variant);flex:0 0 auto}
+.search-field input{border:0;background:transparent;flex:1;font:inherit;font-size:14px;outline:none;color:var(--on-surface)}
+.topbar-spacer{flex:1}
+.icon-btn{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--on-surface-variant);position:relative;transition:background .2s var(--ease);flex:0 0 auto}
+.icon-btn svg{width:22px;height:22px}
+.icon-btn:hover{background:rgba(73,69,79,.10)}
+.badge-dot{position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:var(--error);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 3px;box-shadow:0 0 0 2px var(--surface)}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;cursor:pointer;flex:0 0 auto;transition:box-shadow .2s var(--ease)}
+.avatar:hover{box-shadow:var(--el1)}
+.profile-menu{position:absolute;top:60px;right:22px;background:#fff;border-radius:16px;box-shadow:var(--el3);padding:8px;width:230px;z-index:60;display:none;animation:popIn .18s var(--ease)}
+.profile-menu.show{display:block}
+@keyframes popIn{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.profile-menu .pm-head{padding:10px 12px;border-bottom:1px solid var(--outline-variant);margin-bottom:6px}
+.profile-menu .pm-head b{display:block;font-size:13px}
+.profile-menu .pm-head span{font-size:11px;color:var(--on-surface-variant)}
+.profile-menu .pm-item{padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s var(--ease)}
+.profile-menu .pm-item:hover{background:var(--surface-variant)}
+.notif-panel{position:absolute;top:60px;right:74px;background:#fff;border-radius:16px;box-shadow:var(--el3);padding:10px;width:320px;max-height:400px;overflow:auto;z-index:60;display:none;animation:popIn .18s var(--ease)}
+.notif-panel.show{display:block}
+.notif-panel h4{margin:4px 8px 10px;font-size:13px}
+.notif-item{padding:10px 10px;border-radius:10px;font-size:12.5px;margin-bottom:4px}
+.notif-item b{display:block;font-size:13px;margin-bottom:2px}
+
+.content{padding:22px 26px 120px;max-width:1320px;width:100%;margin:0 auto}
+.page{display:none}
+.page.active{display:block;animation:pageIn .32s var(--ease)}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ---- Cards / grid / typography ---- */
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:6px 0 16px;flex-wrap:wrap}
+.section-title h2{margin:0;font-size:21px;font-weight:800}
+.section-title .sub{color:var(--on-surface-variant);font-size:12.5px;font-weight:600;margin-top:2px;display:block}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.card{background:var(--surface);border-radius:18px;padding:20px;box-shadow:var(--el1);transition:box-shadow .22s var(--ease),transform .22s var(--ease)}
+.card.hoverable:hover{box-shadow:var(--el2);transform:translateY(-4px)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.grid.g3{grid-template-columns:repeat(3,1fr)}
+.grid.g2{grid-template-columns:repeat(2,1fr)}
+.stat-card{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.stat-card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.stat-card:active{transform:translateY(-1px) scale(.99)}
+.stat-card .label{color:var(--on-surface-variant);font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.stat-card .stat{font-size:32px;font-weight:800;margin-top:8px;color:var(--on-surface)}
+.stat-card .stat.small{font-size:22px}
+.stat-card .target{font-size:11px;color:var(--on-surface-variant);margin-top:6px;font-weight:600}
+.small{font-size:12.5px;color:var(--on-surface-variant)}
+.mt16{margin-top:16px}
+.mt24{margin-top:24px}
+
+/* ---- Forms ---- */
+input,select,textarea{width:100%;padding:12px 14px;border:1px solid var(--outline-variant);border-radius:12px;background:#fff;font:inherit;font-size:14px;outline:none;color:var(--on-surface);transition:border-color .2s var(--ease),box-shadow .2s var(--ease)}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(18,87,184,.16)}
+
+/* ---- Stylish MD3 select dropdowns: custom chevron, resting shadow, smooth lift on hover/open ---- */
+select{
+  appearance:none;-webkit-appearance:none;-moz-appearance:none;
+  background-color:#fff;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2345536E' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  background-size:18px;
+  padding-right:44px;
+  cursor:pointer;
+  box-shadow:var(--el1);
+  transition:box-shadow .25s var(--ease),border-color .25s var(--ease),transform .18s var(--ease),background-position .25s var(--ease);
+}
+select:hover{box-shadow:var(--el2);border-color:var(--outline);transform:translateY(-1px)}
+select:focus{box-shadow:var(--el2),0 0 0 3px rgba(18,87,184,.18);border-color:var(--primary);transform:translateY(-1px);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%231257B8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")}
+select:active{transform:translateY(0) scale(.995)}
+select:disabled{cursor:not-allowed;opacity:.6;box-shadow:none;transform:none}
+select option{padding:10px;background:#fff;color:var(--on-surface)}
+textarea{resize:vertical;min-height:70px}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.form-grid.g3{grid-template-columns:repeat(3,1fr)}
+.field label{display:block;font-size:12.5px;font-weight:800;margin-bottom:7px;color:var(--on-surface-variant)}
+.required{color:var(--error)}
+.checkrow{display:flex;align-items:center;gap:8px;padding:10px 4px}
+.checkrow input[type=checkbox],.checkrow input[type=radio]{width:auto;accent-color:var(--primary)}
+fieldset{border:1px solid var(--outline-variant);border-radius:14px;padding:14px 16px;margin:0}
+fieldset legend{font-size:12.5px;font-weight:800;color:var(--on-surface-variant);padding:0 6px}
+
+/* ---- Buttons (MD3 filled / tonal / outlined / text) w/ ripple ---- */
+.btn{border:0;border-radius:20px;padding:11px 22px;font-weight:700;font-size:13.5px;cursor:pointer;position:relative;overflow:hidden;transition:box-shadow .2s var(--ease),background .2s var(--ease),transform .12s var(--ease);display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.btn svg{width:16px;height:16px}
+.btn:active{transform:scale(.96)}
+.btn.filled{background:var(--grad);color:var(--on-primary);box-shadow:var(--el1)}
+.btn.filled:hover{box-shadow:var(--el2);background:#0E48A8}
+.btn.tonal{background:var(--secondary-container);color:var(--on-secondary-container);box-shadow:var(--el0)}
+.btn.tonal:hover{background:#dcd0ee;box-shadow:var(--el1)}
+.btn.success{background:var(--green-container);color:var(--green)}
+.btn.success:hover{box-shadow:var(--el1);filter:brightness(.97)}
+.btn.outlined{background:transparent;border:1px solid var(--outline);color:var(--primary)}
+.btn.outlined:hover{background:rgba(18,87,184,.08)}
+.btn.text{background:transparent;color:var(--primary);box-shadow:none;padding:11px 14px}
+.btn.text:hover{background:rgba(18,87,184,.08)}
+.btn.danger{background:var(--error-container);color:var(--on-error-container)}
+.btn.danger:hover{filter:brightness(.97);box-shadow:var(--el1)}
+.btn.dark{background:#1D1B20;color:#fff}
+.btn.dark:hover{background:#332f38;box-shadow:var(--el2)}
+.btn.sm{padding:7px 13px;font-size:11.5px;border-radius:14px}
+.btn.block{width:100%;justify-content:center}
+.ripple{position:absolute;border-radius:50%;transform:scale(0);animation:rip .55s var(--ease) forwards;pointer-events:none}
+@keyframes rip{to{transform:scale(2.6);opacity:0}}
+
+/* ---- Search suggestions ---- */
+.searchbox{position:relative}
+.suggestions{position:absolute;z-index:70;left:0;right:0;top:calc(100% + 6px);background:#fff;border-radius:14px;box-shadow:var(--el3);max-height:320px;overflow:auto;padding:6px}
+.suggestions:empty{display:none;padding:0;box-shadow:none}
+.suggestion{padding:11px 13px;cursor:pointer;border-radius:10px;transition:background .15s var(--ease)}
+.suggestion:hover,.suggestion:focus{background:var(--surface-variant);outline:none}
+.suggestion b{display:block;color:var(--on-surface);font-size:13.5px;font-weight:800;line-height:1.3}
+.suggestion span{font-size:11.5px;color:var(--on-surface-variant);display:block;margin-top:2px}
+.suggestion.empty-result{cursor:default}
+
+/* ---- Tables ---- */
+.table-wrap{overflow-x:auto;border-radius:14px}
+table{width:100%;border-collapse:collapse;background:#fff;font-size:13px}
+th,td{padding:11px 12px;border-bottom:1px solid var(--surface-variant);text-align:left;white-space:nowrap}
+th{background:var(--surface-variant);color:var(--on-surface-variant);font-size:11px;text-transform:uppercase;letter-spacing:.3px;font-weight:800;position:sticky;top:0}
+tr{transition:background .15s var(--ease)}
+tbody tr:hover{background:#faf7fd}
+.due{color:var(--red);font-weight:800}
+.done{color:var(--green);font-weight:800}
+.row-actions{display:flex;gap:6px;flex-wrap:nowrap}
+.empty{padding:36px;text-align:center;color:var(--on-surface-variant)}
+
+/* ---- Chips (risk classification) ---- */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;font-size:10.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap}
+.chip.green{background:var(--green-container);color:var(--green)}
+.chip.yellow{background:var(--yellow-container);color:var(--yellow)}
+.chip.orange{background:var(--orange-container);color:var(--orange)}
+.chip.red{background:var(--red-container);color:var(--red)}
+.chip.blue{background:var(--secondary-container);color:var(--on-secondary-container)}
+.chip.grey{background:var(--surface-variant);color:var(--on-surface-variant)}
+.chip::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor;flex:0 0 auto}
+.legend-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+
+/* ---- Modal ---- */
+.modal{display:none;position:fixed;inset:0;background:rgba(29,27,32,.5);z-index:80;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(1px)}
+.modal.show{display:flex;animation:fadeBg .2s var(--ease)}
+@keyframes fadeBg{from{opacity:0}to{opacity:1}}
+.modal-box{background:var(--background);border-radius:24px;max-width:920px;width:100%;max-height:92vh;overflow:auto;padding:24px;box-shadow:var(--el3);animation:modalIn .25s var(--ease)}
+@keyframes modalIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ---- Ticket (print) ---- */
+.ticket{max-width:760px;margin:auto;border:2px dashed var(--primary);padding:26px;border-radius:18px;background:#fff}
+.ticket h2{text-align:center;margin:0;color:var(--primary)}
+.staffmark{display:inline-block;background:#1D1B20;color:#fff;padding:6px 14px;border-radius:8px;font-weight:800;letter-spacing:2px;font-size:12px}
+.ticket-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+.ticket-row{border-bottom:1px solid var(--surface-variant);padding:8px}
+.ticket-row span{display:block;color:#6b7280;font-size:11px}
+.ticket-row b{font-size:14px}
+
+/* ---- FAB / speed dial ---- */
+.fab-container{position:fixed;right:28px;bottom:28px;z-index:50;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.fab-backdrop{display:none;position:fixed;inset:0;background:rgba(29,27,32,.28);z-index:45}
+.fab-backdrop.show{display:block;animation:fadeBg .2s var(--ease)}
+.mini-fab{display:flex;align-items:center;gap:10px;background:#fff;color:var(--on-surface);border-radius:16px;padding:11px 16px 11px 12px;box-shadow:var(--el1);cursor:pointer;opacity:0;transform:translateY(10px) scale(.9);pointer-events:none;transition:all .22s var(--ease);font-size:13px;font-weight:700}
+.mini-fab .ic{width:34px;height:34px;border-radius:10px;background:var(--secondary-container);color:var(--on-secondary-container);display:grid;place-items:center;flex:0 0 auto}
+.mini-fab .ic svg{width:17px;height:17px}
+.mini-fab:hover{box-shadow:var(--el2);transform:translateY(8px) scale(1.02)}
+.fab-container.open .mini-fab{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.fab{width:64px;height:60px;border-radius:20px;background:var(--grad);color:#fff;display:flex;align-items:center;gap:10px;justify-content:center;box-shadow:var(--el2);cursor:pointer;overflow:hidden;transition:width .28s var(--ease),transform .22s var(--ease),box-shadow .22s var(--ease),border-radius .22s var(--ease);position:relative}
+.fab svg{width:24px;height:24px;flex:0 0 auto;transition:transform .28s var(--ease)}
+.fab:hover{box-shadow:var(--el3);transform:translateY(-3px)}
+.fab:hover svg{transform:rotate(135deg)}
+.fab.open svg{transform:rotate(135deg)}
+.fab .fab-label{max-width:0;overflow:hidden;white-space:nowrap;font-weight:800;font-size:13.5px;transition:max-width .28s var(--ease)}
+.fab:hover .fab-label{max-width:150px;margin-left:2px}
+
+/* ---- Snackbar ---- */
+.snackbar{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(24px);background:#332D41;color:#fff;padding:14px 22px;border-radius:14px;box-shadow:var(--el3);opacity:0;pointer-events:none;transition:all .3s var(--ease);z-index:200;max-width:440px;font-size:13.5px;font-weight:600;text-align:center}
+.snackbar.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---- Wellness plan cycle ---- */
+.cycle-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.cycle-chip{flex:1;min-width:150px;background:var(--surface-variant);border-radius:14px;padding:12px 14px}
+.cycle-chip b{display:block;font-size:12.5px;color:var(--primary);margin-bottom:4px}
+.cycle-chip span{font-size:12px;color:var(--on-surface-variant)}
+
+/* ---- Committee table ---- */
+.pillar-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.pillar-card{background:var(--surface-variant);border-radius:14px;padding:16px}
+.pillar-card b{color:var(--primary);font-size:13px;display:block;margin-bottom:6px}
+.pillar-card span{font-size:12.5px;color:var(--on-surface-variant)}
+
+.app-footer{margin:30px 0 8px;padding:16px 10px;text-align:center;color:var(--on-surface-variant);font-size:12px;line-height:1.7}
+.app-footer strong{color:var(--on-surface);font-weight:800}
+
+@media(max-width:1080px){.grid{grid-template-columns:repeat(2,1fr)}.grid.g3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){
+  .rail{position:fixed;left:-100px;top:0;bottom:0;box-shadow:var(--el3)}
+  .rail.open{left:0}
+  .rail-backdrop{display:none;position:fixed;inset:0;background:rgba(29,27,32,.35);z-index:39}
+  .rail-backdrop.show{display:block}
+  .icon-btn.hamburger{display:grid}
+  .search-field{max-width:none}
+  .topbar .title-block{display:none}
+}
+@media(max-width:700px){.form-grid,.form-grid.g3{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.grid.g3{grid-template-columns:1fr}.ticket-grid{grid-template-columns:1fr}.content{padding:16px 14px 120px}.pillar-row{grid-template-columns:1fr}}
+@media print{body{background:#fff}.no-print,.rail,.topbar,.fab-container,.snackbar{display:none!important}.content{margin:0;padding:0;max-width:none}.page{display:none!important}#printPage{display:block!important}.ticket{border:1px solid #222}}
+</style>
+</head>
+<body>
+<style>
+#authGate{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;background:#f4f6f8;padding:16px}
+#authGate.show{display:flex}
+#authGate .box{background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,.15);padding:28px;width:100%;max-width:380px;font-family:inherit}
+#authGate h2{margin:0 0 4px;font-size:20px}
+#authGate p.sub{margin:0 0 18px;color:#5f6b76;font-size:13px}
+#authGate label{display:block;font-size:12px;margin:10px 0 4px;color:#44505a}
+#authGate input{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #b9c2ca;border-radius:10px;font-size:15px}
+#authGate button{margin-top:18px;width:100%;padding:12px;border:0;border-radius:999px;background:#0b6b5c;color:#fff;font-size:15px;cursor:pointer}
+#authGate button:disabled{opacity:.6}
+#authGate .err{color:#b3261e;font-size:13px;margin-top:12px;min-height:16px}
+#syncPill{position:fixed;left:12px;bottom:12px;z-index:9000;font-size:12px;padding:5px 10px;border-radius:999px;background:#e8f3ef;color:#0b6b5c;display:none}
+#syncPill.err{background:#fde7e5;color:#b3261e}
+</style>
+<div id="authGate"><div class="box">
+ <h2>Staff Health Programme</h2>
+ <p class="sub">Chandannagar SD Hospital &middot; authorised staff only</p>
+ <label for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="username">
+ <label for="authPass">Password</label><input id="authPass" type="password" autocomplete="current-password">
+ <button id="authBtn" type="button">Sign in</button>
+ <div class="err" id="authErr"></div>
+</div></div>
+<div id="syncPill"></div>
+
+<div class="boot-screen" id="bootScreen">
+  <div class="brandmark">CH</div>
+  <div class="spinner lg"></div>
+  <p id="bootMsg">Loading Staff Health Programme…</p>
+</div>
+
+<div class="rail-backdrop" id="railBackdrop"></div>
+<div class="fab-backdrop" id="fabBackdrop"></div>
+
+<div class="app-shell">
+  <aside class="rail" id="rail">
+    <div class="rail-logo">CH</div>
+    <div id="railItems"></div>
+  </aside>
+
+  <div class="main-col">
+    <header class="topbar">
+      <div class="icon-btn hamburger" id="hamburgerBtn" title="Menu"></div>
+      <div class="title-block"><b>Chandannagar SD Hospital</b><span>Staff Health, Well-being &amp; Occupational Health Programme</span></div>
+      <div class="search-field searchbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="headerSearch" placeholder="Search staff by name or Staff Health ID (HRMS)…" autocomplete="off">
+        <div id="headerSuggestions" class="suggestions"></div>
+      </div>
+      <div class="topbar-spacer"></div>
+      <div class="icon-btn" id="notifBtn" title="Notifications"></div>
+      <div class="avatar" id="profileBtn" title="Programme profile">SH</div>
+      <div class="notif-panel" id="notifPanel"></div>
+      <div class="profile-menu" id="profileMenu">
+        <div class="pm-head"><b>Staff Health & Well-being Committee</b><span>CSDH/SHW-OH/01 · v1.0</span></div>
+        <div class="pm-item" onclick="go('settings');closeMenus()">Programme &amp; SOP reference</div>
+        <div class="pm-item" onclick="go('settings');closeMenus()">Calendar &amp; data settings</div>
+        <div class="pm-item" onclick="signOut()">Sign out</div>
+      </div>
+    </header>
+
+    <main class="content" id="mainContent">
+
+<!-- ================= DASHBOARD ================= -->
+<section id="dashboard" class="page active">
+  <div class="section-title">
+    <div><h2>Overview</h2><span class="sub">Healthy Staff → Healthy Workplace → Better Patient Care</span></div>
+    <div class="actions">
+      <button class="btn filled" onclick="go('register')">+ Register Staff</button>
+      <button class="btn tonal" onclick="go('assessment')">Health Assessment</button>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="card hoverable stat-card" data-nav="database" tabindex="0" role="button" aria-label="View registered staff"><div class="label">Registered Staff</div><div class="stat" id="statEmployees">0</div></div>
+    <div class="card hoverable stat-card" data-nav="report" tabindex="0" role="button" aria-label="View health reporting"><div class="label">Assessments Completed</div><div class="stat" id="statDone">0</div></div>
+    <div class="card hoverable stat-card" data-scroll="dueSection" tabindex="0" role="button" aria-label="View assessments due"><div class="label">Assessments Due</div><div class="stat" id="statDue">0</div></div>
+    <div class="card hoverable stat-card" data-scroll="dueSection" tabindex="0" role="button" aria-label="View assessments due within 30 days"><div class="label">Due Within 30 Days</div><div class="stat" id="statSoon">0</div></div>
+  </div>
+
+  <div class="card mt24">
+    <div class="section-title"><h2 style="font-size:18px">Risk Classification</h2><span class="small">Auto-classified from each staff member's latest assessment · GREEN routine · YELLOW risk factor · ORANGE medical follow-up · RED urgent</span></div>
+    <div class="grid">
+      <div class="card hoverable stat-card" data-nav="database" tabindex="0" role="button" aria-label="View red risk staff" style="background:var(--red-container)"><div class="label" style="color:var(--red)">Red — Urgent</div><div class="stat small" style="color:var(--red)" id="statRed">0</div></div>
+      <div class="card hoverable stat-card" data-nav="database" tabindex="0" role="button" aria-label="View orange risk staff" style="background:var(--orange-container)"><div class="label" style="color:var(--orange)">Orange — Follow-up</div><div class="stat small" style="color:var(--orange)" id="statOrange">0</div></div>
+      <div class="card hoverable stat-card" data-nav="database" tabindex="0" role="button" aria-label="View yellow risk staff" style="background:var(--yellow-container)"><div class="label" style="color:var(--yellow)">Yellow — Risk Factor</div><div class="stat small" style="color:var(--yellow)" id="statYellow">0</div></div>
+      <div class="card hoverable stat-card" data-nav="database" tabindex="0" role="button" aria-label="View green risk staff" style="background:var(--green-container)"><div class="label" style="color:var(--green)">Green — Routine</div><div class="stat small" style="color:var(--green)" id="statGreen">0</div></div>
+    </div>
+  </div>
+
+  <div class="card mt24">
+    <div class="section-title"><h2 style="font-size:18px">Quality Indicators</h2><span class="small">Programme coverage &amp; outcome tracking</span></div>
+    <div class="grid" id="qiGrid"></div>
+  </div>
+
+  <div class="card mt24" id="dueSection">
+    <div class="section-title"><h2 style="font-size:18px">Periodic Assessment Status</h2><span class="small">Normal staff are recalled every 180 days; comorbid staff and staff aged ≥45 are recalled every 90 days (SOP -12–13). Max <span id="maxPerDayLbl"></span> staff scheduled per working day.</span></div>
+    <div id="dueTable"></div>
+  </div>
+</section>
+
+<!-- ================= REGISTER ================= -->
+<section id="register" class="page">
+  <div class="section-title"><div><h2>New Staff Registration</h2><span class="sub">Baseline Staff Health Assessment begins at joining (SOP -11)</span></div></div>
+  <div class="card">
+    <form id="regForm">
+      <div class="form-grid">
+        <div class="field"><label>Name <span class="required">*</span></label><input id="rName" required></div>
+        <div class="field"><label>Staff Health ID / HRMS ID <span class="required">*</span></label><input id="rHrms" required></div>
+        <div class="field"><label>Mobile Number <span class="required">*</span></label><input id="rMobile" required pattern="[0-9]{10}" maxlength="10"></div>
+        <div class="field"><label>Date of Birth <span class="required">*</span></label><input id="rDob" type="date" required></div>
+        <div class="field"><label>Height (cm) <span class="required">*</span></label><input id="rHeight" type="number" step="0.1" min="0" required></div>
+        <div class="field"><label>Staff Category <span class="required">*</span></label>
+          <select id="rCategory" required>
+            <option value="">— Select —</option>
+            <option>Clinical Staff</option>
+            <option>Technical / Paramedical Staff</option>
+            <option>Administrative Staff</option>
+            <option>Support Staff</option>
+            <option>Contractual / Outsourced Personnel</option>
+          </select>
+        </div>
+        <div class="field"><label>Department / Unit</label><input id="rDept" placeholder="e.g. Nursing, Laboratory, Radiology, OT…"></div>
+      </div>
+      <div class="mt16"><button class="btn filled" type="submit">Register Staff Member</button></div>
+      <p class="small mt16">All fields marked * are mandatory. Staff Health ID must be unique. This creates the record for the Baseline Health Assessment (SOP -11).</p>
+    </form>
+  </div>
+</section>
+
+<!-- ================= ASSESSMENT ================= -->
+<section id="assessment" class="page">
+  <div class="section-title"><div><h2>Health Assessment</h2><span class="sub">Baseline / Periodic (180-day, 90-day for comorbid or age ≥45) / High-risk / Occupational Health Review (SOP -11–16)</span></div></div>
+  <div class="card">
+    <div class="field"><label>Search registered staff by Staff Health ID or Name</label>
+      <div class="searchbox"><input id="globalSearch" placeholder="Start typing name or Staff Health ID…"><div id="suggestions" class="suggestions"></div></div>
+    </div>
+    <div id="selectedEmployee" class="mt16"></div>
+  </div>
+  <div id="assessmentArea" class="mt16"></div>
+</section>
+
+<!-- ================= VACCINATION ================= -->
+<section id="vaccination" class="page">
+  <div class="section-title"><div><h2>Vaccination Surveillance</h2><span class="sub">SOP -19 &amp; Annexure III — Hepatitis-B, Tetanus/Tdap, Influenza, COVID-19 &amp; other occupationally indicated vaccines</span></div>
+    <div class="actions"><button class="btn success" onclick="exportVaccinationXlsx()">Export Register</button></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><h2 style="font-size:16px">Vaccination Gap List</h2><span class="small" id="vaccGapNote"></span></div>
+    <div id="vaccTable"></div>
+  </div>
+</section>
+
+<!-- ================= OCCUPATIONAL EXPOSURE ================= -->
+<section id="exposure" class="page">
+  <div class="section-title"><div><h2>Occupational Exposure Management</h2><span class="sub">SOP -17, -20 &amp; Annexure IV — biological, chemical, physical, ergonomic &amp; psychological hazards</span></div>
+    <div class="actions"><button class="btn filled" onclick="openExposureModal()">+ Report Exposure Incident</button></div>
+  </div>
+  <div class="card">
+    <p class="small">Immediate First Aid → Incident Reporting → Risk Assessment → Investigation/Prophylaxis → Referral → Follow-up → Documentation. Reporting shall never be discouraged for fear of administrative consequences (SOP -20).</p>
+  </div>
+  <div class="card mt16">
+    <div class="section-title"><h2 style="font-size:16px">Occupational Exposure Register</h2></div>
+    <div id="exposureTable"></div>
+  </div>
+</section>
+
+<!-- ================= REFERRAL & FOLLOW-UP ================= -->
+<section id="referral" class="page">
+  <div class="section-title"><div><h2>Referral &amp; Follow-up</h2><span class="sub">SOP -32–36, Annexure II — Urgent: immediate · Significant: within 7 days · Routine: within 30 days · Chronic risk factor: within 3 months</span></div>
+    <div class="actions"><button class="btn filled" onclick="openReferralModal()">+ New Referral Entry</button></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><h2 style="font-size:16px">Referral &amp; Follow-up Register</h2><span class="small" id="referralNote"></span></div>
+    <div id="referralTable"></div>
+  </div>
+</section>
+
+<!-- ================= SATURDAY WELLNESS ================= -->
+<section id="wellness" class="page">
+  <div class="section-title"><div><h2>Staff Health &amp; Well-being Hour</h2><span class="sub">Every Saturday · 2:00 PM – 3:00 PM · Compulsory institutional wellness activity (SOP -23–29)</span></div>
+    <div class="actions"><button class="btn filled" onclick="openWellnessModal()">+ Log Saturday Session</button></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><h2 style="font-size:16px">Suggested Monthly Wellness Cycle (SOP -29)</h2></div>
+    <div class="cycle-row">
+      <div class="cycle-chip"><b>1st Saturday</b><span>Meditation / Mindfulness</span></div>
+      <div class="cycle-chip"><b>2nd Saturday</b><span>Yoga / Stretching / Physical activity</span></div>
+      <div class="cycle-chip"><b>3rd Saturday</b><span>Nutrition / Lifestyle / Health education</span></div>
+      <div class="cycle-chip"><b>4th Saturday</b><span>Stress management / Mental well-being</span></div>
+      <div class="cycle-chip"><b>5th Saturday</b><span>Staff interaction / feedback / special activity</span></div>
+    </div>
+  </div>
+  <div class="grid mt16">
+    <div class="card hoverable stat-card"><div class="label">Sessions Logged</div><div class="stat" id="statSessions">0</div></div>
+    <div class="card hoverable stat-card"><div class="label">Total Attendances</div><div class="stat" id="statAttend">0</div></div>
+    <div class="card hoverable stat-card"><div class="label">Avg. Participants / Session</div><div class="stat" id="statAvgPart">0</div></div>
+    <div class="card hoverable stat-card"><div class="label">Avg. Participation %</div><div class="stat" id="statPartPct">0%</div></div>
+  </div>
+  <div class="card mt16">
+    <div class="section-title"><h2 style="font-size:16px">Saturday Wellness Register (Annexure V)</h2></div>
+    <div id="wellnessTable"></div>
+  </div>
+</section>
+
+<!-- ================= REPORTING ================= -->
+<section id="report" class="page">
+  <div class="section-title"><div><h2>Health Reporting</h2><span class="sub">Individual assessment history</span></div></div>
+  <div class="card">
+    <div class="field"><label>Search staff member</label><div class="searchbox"><input id="reportSearch" placeholder="Name or Staff Health ID…"><div id="reportSuggestions" class="suggestions"></div></div></div>
+    <div id="reportArea" class="mt16"><div class="empty">Select a staff member to view their assessment history.</div></div>
+  </div>
+
+  <div class="card mt16">
+    <div class="section-title"><div><h2 style="font-size:16px">All Staff — Assessment Summary</h2><span class="sub">Blood group &amp; latest health parameters for every registered staff member</span></div>
+      <div class="actions"><button class="btn success" onclick="exportSummaryXlsx()">Export Excel</button><button class="btn outlined" onclick="printSummaryReport()">Print</button></div>
+    </div>
+    <div class="form-grid g3">
+      <div class="field"><label>Filter by Blood Group</label>
+        <select id="filterBloodGroup" onchange="renderSummaryReport()">
+          <option value="">All Blood Groups</option>
+          <option>A+</option><option>A-</option>
+          <option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option>
+          <option>O+</option><option>O-</option>
+          <option>Unknown</option>
+          <option value="—">Not Recorded</option>
+        </select>
+      </div>
+      <div class="field"><label>Filter by Health Parameter</label>
+        <select id="filterHealthParam" onchange="renderSummaryReport()"><option value="">All Health Parameters</option></select>
+      </div>
+      <div class="field"><label>Filter by Risk Classification</label>
+        <select id="filterRisk" onchange="renderSummaryReport()">
+          <option value="">All Risk Levels</option>
+          <option value="RED">Red — Urgent</option>
+          <option value="ORANGE">Orange — Priority</option>
+          <option value="YELLOW">Yellow — Monitor</option>
+          <option value="GREEN">Green — Routine</option>
+          <option value="PENDING">Pending Assessment</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions mt16"><button class="btn tonal" onclick="clearSummaryFilters()">Clear Filters</button><span id="summaryFilterCount" class="small" style="align-self:center"></span></div>
+    <div id="summaryReportTable" class="mt16"></div>
+  </div>
+</section>
+
+<!-- ================= DATABASE ================= -->
+<section id="database" class="page">
+  <div class="section-title"><div><h2>Staff Database</h2><span class="sub">Confidential Staff Health Record (SOP -10) — access restricted to authorised personnel</span></div>
+    <div class="actions"><button class="btn success" onclick="exportXlsx()">Export Excel</button><button class="btn outlined" onclick="exportCsv()">Export CSV</button><label class="btn tonal" style="display:inline-flex">Import Excel/CSV<input id="importFile" type="file" accept=".xlsx,.xls,.csv" style="display:none"></label></div>
+  </div>
+  <div class="card"><div id="dbTable"></div></div>
+</section>
+
+<!-- ================= SETTINGS ================= -->
+<section id="settings" class="page">
+  <div class="section-title"><div><h2>Programme, Calendar &amp; Data</h2><span class="sub">SOP CSDH/SHW-OH/01 · Version 1.0</span></div></div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Three Pillars of the Programme (SOP -6)</h3>
+    <div class="pillar-row">
+      <div class="pillar-card"><b>Pillar I — Periodic Health Check-up</b><span>Baseline assessment at joining + Periodic health assessment every 180 days (90 days for comorbid staff and staff aged ≥45).</span></div>
+      <div class="pillar-card"><b>Pillar II — Occupational Health Surveillance</b><span>Occupational risk assessment, vaccination, exposure monitoring &amp; preventive action.</span></div>
+      <div class="pillar-card"><b>Pillar III — Staff Health &amp; Well-being</b><span>Weekly compulsory wellness hour, health education, physical activity &amp; mental-health promotion.</span></div>
+    </div>
+  </div>
+
+  <div class="card mt16">
+    <h3 style="margin-top:0">Staff Health &amp; Well-being Committee (SOP -7)</h3>
+    <div class="table-wrap"><table><thead><tr><th>Sl. No.</th><th>Name &amp; Designation</th><th>Role</th></tr></thead><tbody>
+      <tr><td>01</td><td>Dr. Dipak Biswas, Medical Officer</td><td>Convenor</td></tr>
+      <tr><td>02</td><td>Dr. Anindya Addhya, Pathologist</td><td>Member</td></tr>
+      <tr><td>03</td><td>Dr. Kuntal Saha, Physician</td><td>Member</td></tr>
+      <tr><td>04</td><td>Dr. Mrinal Kanti Saha, Orthopaedic</td><td>Member</td></tr>
+      <tr><td>05</td><td>Mrs. Uma Dutta, ICN</td><td>Member — Group-A Officer</td></tr>
+      <tr><td>06</td><td>Mrs. Mitali Chakraborty, Jt. NS &amp; Mrs. Mithu Sen, DNS</td><td>Member — Nursing</td></tr>
+      <tr><td>07</td><td>Mrs. Shrabana Sarkar, FSO</td><td>Member — Paramedical Cadre</td></tr>
+      <tr><td>08</td><td>Rinku Majhi, Head Clerk</td><td>Member — Administrative Cadre</td></tr>
+      <tr><td>09</td><td>Mrs. Debalina Chakraborty, Asst. Supt. NM &amp; Mr. Siddhartha Chatterjee, GDA</td><td>Member — Support Staff Cadre</td></tr>
+    </tbody></table></div>
+    <p class="small mt16">The composition may be modified according to institutional requirements. Committee meets at least once every quarter (SOP -9).</p>
+  </div>
+
+  <div class="card mt16">
+    <h3 style="margin-top:0">Working-day rules</h3>
+    <p class="small">The 2026 Government of West Bengal calendar is used as the basis for the default holiday list. The hospital may maintain the holiday list for future years.</p>
+    <div class="form-grid">
+      <div class="field"><label>Working Saturday policy</label><select id="satPolicy"><option value="working">Saturday is a working day</option><option value="off">Saturday is non-working</option></select></div>
+      <div class="field"><label>Current calendar year</label><input id="calYear" type="number" min="2020" max="2100"></div>
+    </div>
+    <div class="mt16"><label class="btn tonal" style="display:inline-flex">Upload/replace holiday list<input id="holidayFile" type="file" accept=".csv,.xlsx,.xls" style="display:none"></label></div>
+    <p class="small mt16">Holiday import columns supported: <b>date</b>, <b>holiday</b>. Dates must be YYYY-MM-DD or standard Excel dates.</p>
+    <div id="holidayTable" class="mt16"></div>
+  </div>
+
+  <div class="card mt16">
+    <h3 style="margin-top:0">Backup / Restore</h3>
+    <p class="small">Data is stored in the private cloud database (login required). Download a JSON backup regularly and keep it somewhere secure — never upload it to GitHub.</p>
+    <div class="actions"><button class="btn dark" onclick="backupJson()">Download JSON Backup</button><label class="btn outlined" style="display:inline-flex">Restore JSON<input id="restoreJson" type="file" accept=".json" style="display:none"></label></div>
+  </div>
+</section>
+
+<section id="printPage" class="page">
+  <div class="ticket" id="printTicket"></div>
+</section>
+
+<footer class="app-footer no-print">
+  <div><strong>Initiated by Dr. Ranjan Kumar Dey, Superintendent</strong></div>
+  <div><strong>Developed by Arnab Bandopadhyay</strong></div>
+  <div>© Chandannagar S.D. Hospital. All Rights Reserved.</div>
+</footer>
+
+    </main>
+  </div>
+</div>
+
+<!-- ===== FAB speed-dial ===== -->
+<div class="fab-container" id="fabContainer">
+  <div class="mini-fab" onclick="go('exposure');openExposureModal();closeFab()"><span class="ic" id="miniIcExposure"></span>Report Exposure</div>
+  <div class="mini-fab" onclick="go('assessment');closeFab()"><span class="ic" id="miniIcAssess"></span>New Assessment</div>
+  <div class="mini-fab" onclick="go('register');closeFab()"><span class="ic" id="miniIcReg"></span>Register Staff</div>
+  <div class="fab" id="fabBtn"><span id="fabIcon"></span><span class="fab-label">Quick Actions</span></div>
+</div>
+
+<div class="snackbar" id="snackbar"></div>
+
+<!-- ===== Employee edit modal ===== -->
+<div class="modal" id="employeeModal"><div class="modal-box">
+  <div class="section-title"><h2>Edit Staff Record</h2><button class="btn outlined" onclick="closeEmployeeModal()">Close</button></div>
+  <form id="employeeEditForm">
+    <input type="hidden" id="editOriginalHrms">
+    <div class="form-grid">
+      <div class="field"><label>Name <span class="required">*</span></label><input id="editName" required></div>
+      <div class="field"><label>Staff Health ID <span class="required">*</span></label><input id="editHrms" required></div>
+      <div class="field"><label>Mobile Number <span class="required">*</span></label><input id="editMobile" required pattern="[0-9]{10}" maxlength="10"></div>
+      <div class="field"><label>Date of Birth <span class="required">*</span></label><input id="editDob" type="date" required></div>
+      <div class="field"><label>Height (cm) <span class="required">*</span></label><input id="editHeight" type="number" step="0.1" min="0" required></div>
+      <div class="field"><label>Staff Category</label>
+        <select id="editCategory">
+          <option value="">— Select —</option>
+          <option>Clinical Staff</option>
+          <option>Technical / Paramedical Staff</option>
+          <option>Administrative Staff</option>
+          <option>Support Staff</option>
+          <option>Contractual / Outsourced Personnel</option>
+        </select>
+      </div>
+      <div class="field"><label>Department / Unit</label><input id="editDept"></div>
+      <div class="field"><label>MO Override — Review Interval (days)</label><input id="editCustomInterval" type="number" min="7" placeholder="Default: 180 days · 90 days if comorbid/45+"></div>
+    </div>
+    <div class="mt16"><button class="btn filled" type="submit">Save Changes</button></div>
+  </form>
+</div></div>
+
+<!-- ===== Health assessment modal ===== -->
+<div class="modal" id="healthModal"><div class="modal-box">
+  <div class="section-title"><h2 id="healthModalTitle">Staff Health Assessment</h2><button class="btn outlined" onclick="closeModal()">Close</button></div>
+  <div id="modalEmployee" class="small"></div>
+  <form id="healthForm">
+    <input type="hidden" id="aHrms">
+    <input type="hidden" id="aId">
+
+    <fieldset class="mt16"><legend>A. Type of Assessment</legend>
+      <div class="form-grid g3">
+        <div class="field"><label>Assessment Type <span class="required">*</span></label>
+          <select id="aType" required>
+            <option value="Joining/Baseline">Joining / Baseline</option>
+            <option value="Periodic">Periodic (180-day / 90-day priority)</option>
+            <option value="High-risk Review">High-risk Review</option>
+            <option value="Occupational Health Review">Occupational Health Review</option>
+          </select>
+        </div>
+        <div class="field"><label>Assessment Date</label><input id="aDate" type="date" required></div>
+        <div class="field"><label>Examining Medical Officer</label><input id="aMO" placeholder="Name of examining MO"></div>
+      </div>
+    </fieldset>
+
+    <fieldset class="mt16"><legend>B. Vital Parameters &amp; Anthropometry (SOP -14)</legend>
+      <div class="form-grid g3">
+        <div class="field"><label>Weight (kg)</label><input id="aWeight" type="number" step="0.1"></div>
+        <div class="field"><label>Blood Pressure (e.g. 120/80)</label><input id="aBP"></div>
+        <div class="field"><label>Pulse (bpm)</label><input id="aPulse" type="number"></div>
+        <div class="field"><label>Waist Circumference (cm)</label><input id="aWaist" type="number" step="0.1"></div>
+        <div class="field"><label>SpO₂ (%)</label><input id="aSpo2" type="number"></div>
+        <div class="field"><label>Blood Sugar / FBG (mg/dL)</label><input id="aSugar" type="number" step="0.1"></div>
+        <div class="field"><label>Blood Group</label>
+          <select id="aBloodGroup">
+            <option value="">— Select —</option>
+            <option>A+</option><option>A-</option>
+            <option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option>
+            <option>O+</option><option>O-</option>
+            <option>Unknown</option>
+          </select>
+        </div>
+        <div class="field"><label>BMI (auto)</label><input id="aBMI" readonly style="background:var(--surface-variant)"></div>
+        <div class="field"><label>Remarks</label><input id="aRemarks"></div>
+      </div>
+    </fieldset>
+
+    <fieldset class="mt16"><legend>C/D. Medical &amp; Occupational History (SOP -17–18, Annexure I)</legend>
+      <p class="small">Needle-stick injury, blood/body-fluid exposure and other significant occupational events should also be separately logged in the <b>Occupational Exposure Register</b>.</p>
+      <div class="form-grid g3" id="occHistoryGrid"></div>
+    </fieldset>
+
+    <fieldset class="mt16"><legend>E. Vaccination Review (SOP -19, Annexure I)</legend>
+      <div class="form-grid g3">
+        <div class="field"><label>Hepatitis-B</label><select id="vHepB"><option value="">—</option><option>Complete</option><option>Incomplete</option><option>Unknown</option></select></div>
+        <div class="field"><label>Tetanus / Tdap</label><select id="vTetanus"><option value="">—</option><option>Up-to-date</option><option>Due</option><option>Unknown</option></select></div>
+        <div class="field"><label>Influenza</label><select id="vFlu"><option value="">—</option><option>Up-to-date</option><option>Due</option><option>Unknown</option></select></div>
+        <div class="field"><label>COVID-19</label><select id="vCovid"><option value="">—</option><option>Up-to-date</option><option>Due</option><option>Unknown</option></select></div>
+        <div class="field"><label>Other vaccine(s)</label><input id="vOther"></div>
+      </div>
+    </fieldset>
+
+    <div class="card mt16" style="background:var(--surface-variant)">
+      <h3 style="margin-top:0">Health Parameters / Findings</h3>
+      <p class="small">Select a parameter to record, fill in its details, then add it. Add as many as needed. Presence of chronic conditions here informs the risk classification below.</p>
+      <div class="form-grid" style="grid-template-columns:1fr auto">
+        <div class="field"><label>Parameter</label>
+          <select id="pParamType">
+            <option value="">— Select a parameter —</option>
+            <option value="hypertension">Hypertension</option>
+            <option value="diabetes">Diabetes / Prediabetes</option>
+            <option value="cardiovascular">Cardiovascular disease</option>
+            <option value="respiratory">Respiratory disease (COPD, Bronchial asthma, ILD)</option>
+            <option value="kidney">Kidney disease (Chronic Kidney Disease)</option>
+            <option value="liver">Liver disease (Chronic Liver Disease)</option>
+            <option value="thyroid">Thyroid disorders</option>
+            <option value="musculoskeletal">Musculoskeletal problems</option>
+            <option value="existingchronic">Existing chronic illness</option>
+            <option value="medications">Current medications</option>
+            <option value="lifestyle">Relevant lifestyle factors</option>
+            <option value="eye">EYE</option>
+            <option value="skin">SKIN</option>
+            <option value="other">OTHER</option>
+          </select>
+        </div>
+        <div class="field" style="align-self:end"><button type="button" class="btn tonal" onclick="addParamEntry()">+ Add Parameter</button></div>
+      </div>
+      <div id="paramSubForm" class="form-grid mt16"></div>
+      <div id="paramList" class="mt16"></div>
+    </div>
+
+    <fieldset class="mt16"><legend>G. Risk Classification (SOP -31)</legend>
+      <p class="small">Auto-suggested from the data above. The examining Medical Officer may confirm or override.</p>
+      <div class="form-grid g3">
+        <div class="field"><label>Suggested classification</label><div id="riskSuggested" class="chip grey">—</div></div>
+        <div class="field"><label>Final Risk Classification <span class="required">*</span></label>
+          <select id="aRisk" required>
+            <option value="GREEN">Green — Routine</option>
+            <option value="YELLOW">Yellow — Risk Factor Identified</option>
+            <option value="ORANGE">Orange — Medical Follow-up Required</option>
+            <option value="RED">Red — Urgent Attention Required</option>
+          </select>
+        </div>
+        <div class="field"><label>Create Referral &amp; Follow-up entry?</label>
+          <div class="checkrow"><input type="checkbox" id="aCreateReferral"><span class="small">Auto-fill a follow-up register entry from this finding</span></div>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="mt16 actions">
+      <button class="btn filled" type="submit" id="healthSubmitBtn">Save Assessment</button>
+      <button class="btn danger" type="button" id="deleteAssessmentBtn" style="display:none" onclick="deleteAssessment(document.getElementById('aId').value)">Delete This Assessment</button>
+    </div>
+  </form>
+</div></div>
+
+<!-- ===== Exposure modal ===== -->
+<div class="modal" id="exposureModal"><div class="modal-box">
+  <div class="section-title"><h2>Report Occupational Exposure Incident</h2><button class="btn outlined" onclick="closeExposureModal()">Close</button></div>
+  <form id="exposureForm">
+    <div class="field"><label>Staff member <span class="required">*</span></label>
+      <div class="searchbox"><input id="expSearch" placeholder="Search by name or Staff Health ID…" autocomplete="off"><div id="expSuggestions" class="suggestions"></div></div>
+      <input type="hidden" id="expHrms" required>
+      <p class="small" id="expSelectedLabel"></p>
+    </div>
+    <div class="form-grid mt16">
+      <div class="field"><label>Date of Exposure <span class="required">*</span></label><input id="expDate" type="date" required></div>
+      <div class="field"><label>Exposure Type <span class="required">*</span></label>
+        <select id="expType" required>
+          <option value="">— Select —</option>
+          <option>Needle-stick / Sharp injury</option>
+          <option>Blood / Body-fluid exposure</option>
+          <option>TB exposure</option>
+          <option>Chemical exposure</option>
+          <option>Radiation exposure</option>
+          <option>Ergonomic (lifting/posture) injury</option>
+          <option>Other occupational infection</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid mt16">
+      <div class="field"><label>Immediate First Aid / Action</label><textarea id="expAction"></textarea></div>
+      <div class="field"><label>Investigation / PEP / Prophylaxis</label><textarea id="expPep"></textarea></div>
+    </div>
+    <div class="form-grid mt16">
+      <div class="field"><label>Referral (if any)</label><input id="expReferral"></div>
+      <div class="field"><label>Preventive Action Identified</label><input id="expPreventive"></div>
+    </div>
+    <div class="mt16"><button class="btn filled" type="submit">Save Exposure Record</button></div>
+  </form>
+</div></div>
+
+<!-- ===== Referral modal ===== -->
+<div class="modal" id="referralModal"><div class="modal-box">
+  <div class="section-title"><h2>Staff Health Referral &amp; Follow-up Entry</h2><button class="btn outlined" onclick="closeReferralModal()">Close</button></div>
+  <form id="referralForm">
+    <input type="hidden" id="refId">
+    <div class="field"><label>Staff member <span class="required">*</span></label>
+      <div class="searchbox"><input id="refSearch" placeholder="Search by name or Staff Health ID…" autocomplete="off"><div id="refSuggestions" class="suggestions"></div></div>
+      <input type="hidden" id="refHrms" required>
+      <p class="small" id="refSelectedLabel"></p>
+    </div>
+    <div class="form-grid mt16">
+      <div class="field"><label>Date <span class="required">*</span></label><input id="refDate" type="date" required></div>
+      <div class="field"><label>Target Follow-up Date</label><input id="refTarget" type="date"></div>
+    </div>
+    <div class="form-grid mt16">
+      <div class="field"><label>Finding</label><textarea id="refFinding"></textarea></div>
+      <div class="field"><label>Advice</label><textarea id="refAdvice"></textarea></div>
+    </div>
+    <div class="form-grid mt16">
+      <div class="field"><label>Referred To</label>
+        <select id="refTo"><option value="">— None yet —</option><option>Medicine</option><option>Gynaecology</option><option>Surgery</option><option>Ophthalmology</option><option>ENT</option><option>Physiotherapy</option><option>Mental-health / Counselling</option><option>Other</option></select>
+      </div>
+      <div class="field"><label>Follow-up Status</label>
+        <select id="refStatus"><option value="Pending">Pending</option><option value="Completed">Completed</option></select>
+      </div>
+    </div>
+    <div class="form-grid mt16">
+      <div class="field"><label>Further Action</label><input id="refFurther"></div>
+      <div class="field"><label>Closure Date</label><input id="refClosure" type="date"></div>
+    </div>
+    <div class="mt16"><button class="btn filled" type="submit">Save Referral Entry</button></div>
+  </form>
+</div></div>
+
+<!-- ===== Wellness modal ===== -->
+<div class="modal" id="wellnessModal"><div class="modal-box">
+  <div class="section-title"><h2>Log Saturday Wellness Session</h2><button class="btn outlined" onclick="closeWellnessModal()">Close</button></div>
+  <form id="wellnessForm">
+    <div class="form-grid">
+      <div class="field"><label>Date <span class="required">*</span></label><input id="wDate" type="date" required></div>
+      <div class="field"><label>Activity <span class="required">*</span></label>
+        <select id="wActivity" required>
+          <option value="">— Select —</option>
+          <option>Meditation / Mindfulness</option>
+          <option>Yoga / Stretching / Physical activity</option>
+          <option>Breathing exercises</option>
+          <option>Nutrition education</option>
+          <option>Sleep &amp; lifestyle education</option>
+          <option>Stress-management session</option>
+          <option>Mental well-being</option>
+          <option>Ergonomics</option>
+          <option>Health-awareness session</option>
+          <option>Staff interaction / feedback</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid mt16">
+      <div class="field"><label>Resource Person</label><input id="wResource"></div>
+      <div class="field"><label>Duration</label><input id="wDuration" value="2:00 PM – 3:00 PM"></div>
+    </div>
+    <div class="form-grid mt16">
+      <div class="field"><label>Total Participants <span class="required">*</span></label><input id="wParticipants" type="number" min="0" required></div>
+      <div class="field"><label>Departments Represented</label><input id="wDepartments" placeholder="e.g. Nursing, Lab, Admin…"></div>
+    </div>
+    <div class="field mt16"><label>Brief Outcome</label><textarea id="wOutcome"></textarea></div>
+    <div class="mt16"><button class="btn filled" type="submit">Save Session Record</button></div>
+  </form>
+</div></div>
+
+<script>
+/* ============================================================
+   Chandannagar SD Hospital — Staff Health, Well-being &
+   Occupational Health Programme (SOP CSDH/SHW-OH/01, v1.0)
+   ============================================================ */
+const KEY='csdh_staff_health_v2';
+const DEFAULT_HOLIDAYS={
+"2026-01-01":"New Year's Day","2026-01-12":"Birthday of Swami Vivekananda","2026-01-22":"Day before Saraswati Puja","2026-01-23":"Netaji's Birthday","2026-01-26":"Republic Day",
+"2026-02-04":"Shab-e-Barat","2026-02-14":"Birthday of Thakur Panchanan Barma",
+"2026-03-03":"Doljatra","2026-03-04":"Holi (Day after Doljatra)","2026-03-17":"Birthday of Shri Shri Harichand Thakur","2026-03-20":"Day before Eid-Ul-Fitr","2026-03-21":"Eid-Ul-Fitr","2026-03-26":"Ram Navami","2026-03-31":"Mahavir Jayanti",
+"2026-04-03":"Good Friday","2026-04-14":"Birthday of Dr. B.R. Ambedkar","2026-04-15":"Bengali New Year's Day",
+"2026-05-01":"May Day","2026-05-02":"Day before Id-Ud-Zoha (Bakrid)","2026-05-09":"Rabindra Jayanti","2026-05-27":"Id-Ud-Zoha (Bakrid)",
+"2026-06-30":"Hul Diwas (sectional)","2026-07-13":"Birthday of Poet Bhanu Bhakta (Darjeeling & Kalimpong only)","2026-07-16":"Rathayatra",
+"2026-08-15":"Independence Day","2026-08-26":"Fateha-Dwaz-Daham","2026-08-28":"Rakhi Bandhan",
+"2026-09-04":"Janmashtami","2026-09-17":"Viswakarma Puja",
+"2026-10-02":"Birthday of Gandhiji","2026-10-10":"Mahalaya","2026-10-15":"Durga Puja - Maha Chaturthi","2026-10-16":"Durga Puja - Maha Panchami","2026-10-17":"Durga Puja - Maha Shasthi","2026-10-19":"Durga Puja - Maha Astami","2026-10-20":"Durga Puja - Maha Nabami","2026-10-21":"Durga Puja - Dasami","2026-10-22":"Additional Day for Durga Puja","2026-10-23":"Additional Day for Durga Puja","2026-10-24":"Additional Day for Durga Puja","2026-10-26":"Additional Day for Lakshmi Puja",
+"2026-11-11":"Bhratridwitiya","2026-11-12":"Day after Bhratridwitiya","2026-11-16":"Additional Day for Chhat Puja","2026-11-24":"Birthday of Guru Nanak / Parshwanath's Rathajatra",
+"2026-12-25":"Christmas Day"
+};
+/* SOP -12/-13: Periodic Health Check-up. Normal staff: every 180 days. Comorbid staff or age ≥45: every 90 days. */
+const MAX_PER_DAY=5;
+/* Periodic Health Check-up cadence: Normal staff every 180 days; Comorbid staff and staff aged ≥45 every 90 days (SOP -13). */
+const STANDARD_INTERVAL_DAYS=180;
+const PRIORITY_INTERVAL_DAYS=90;
+const PRIORITY_AGE=45;
+const CHRONIC_PARAM_TYPES=['hypertension','diabetes','cardiovascular','respiratory','kidney','liver'];
+const OCC_HISTORY_FIELDS=[
+ {key:'needlestick',label:'Needle-stick injury'},
+ {key:'bloodexposure',label:'Blood / body-fluid exposure'},
+ {key:'tbexposure',label:'TB exposure'},
+ {key:'chemicalexposure',label:'Chemical exposure'},
+ {key:'radiationexposure',label:'Radiation exposure'},
+ {key:'musculoskeletal',label:'Musculoskeletal complaint'},
+ {key:'workstress',label:'Work-related stress'}
+];
+const PARAM_DEFS={
+ hypertension:{label:'Hypertension',fields:[
+   {key:'status',label:'Diagnosis',type:'select',options:['Diagnosed','Screened - Not Present']},
+   {key:'since',label:'Since (year / duration)',type:'text'},
+   {key:'medication',label:'On Medication',type:'select',options:['Yes','No']},
+   {key:'currentBp',label:'Current BP Reading',type:'text'},
+   {key:'controlled',label:'Controlled',type:'select',options:['Yes','No']}
+ ]},
+ diabetes:{label:'Diabetes / Prediabetes',fields:[
+   {key:'status',label:'Diagnosis',type:'select',options:['Type 1 Diabetes','Type 2 Diabetes','Prediabetes','Screened - Not Present']},
+   {key:'since',label:'Since (year / duration)',type:'text'},
+   {key:'medication',label:'On Medication / Insulin',type:'select',options:['Yes','No']},
+   {key:'fastingSugar',label:'Fasting Sugar (mg/dL)',type:'number'},
+   {key:'hba1c',label:'HbA1c (%)',type:'number'}
+ ]},
+ cardiovascular:{label:'Cardiovascular disease',fields:[
+   {key:'status',label:'Condition',type:'select',options:['Coronary Artery Disease','Prior Myocardial Infarction','Arrhythmia','Heart Failure','Other','Screened - Not Present']},
+   {key:'since',label:'Since (year / duration)',type:'text'},
+   {key:'medication',label:'On Medication',type:'select',options:['Yes','No']},
+   {key:'details',label:'Details',type:'text'}
+ ]},
+ respiratory:{label:'Respiratory disease',fields:[
+   {key:'status',label:'Type',type:'select',options:['COPD','Bronchial Asthma','Interstitial Lung Disease (ILD)','Other','Screened - Not Present']},
+   {key:'since',label:'Since (year / duration)',type:'text'},
+   {key:'severity',label:'Severity',type:'select',options:['Mild','Moderate','Severe']},
+   {key:'medication',label:'On Medication',type:'select',options:['Yes','No']}
+ ]},
+ kidney:{label:'Kidney disease (CKD)',fields:[
+   {key:'status',label:'Diagnosis',type:'select',options:['CKD Stage 1','CKD Stage 2','CKD Stage 3','CKD Stage 4','CKD Stage 5','Screened - Not Present']},
+   {key:'since',label:'Since (year / duration)',type:'text'},
+   {key:'dialysis',label:'On Dialysis',type:'select',options:['Yes','No']},
+   {key:'creatinine',label:'Creatinine (mg/dL)',type:'number'}
+ ]},
+ liver:{label:'Liver disease (CLD)',fields:[
+   {key:'status',label:'Diagnosis',type:'select',options:['Chronic Liver Disease','Screened - Not Present']},
+   {key:'cause',label:'Cause',type:'text'},
+   {key:'since',label:'Since (year / duration)',type:'text'},
+   {key:'severity',label:'Severity',type:'select',options:['Mild','Moderate','Severe']}
+ ]},
+ thyroid:{label:'Thyroid disorders',fields:[
+   {key:'status',label:'Finding',type:'select',options:['Hypothyroidism','Hyperthyroidism','Other','Normal']},
+   {key:'medication',label:'On Medication',type:'select',options:['Yes','No']},
+   {key:'tsh',label:'TSH Level (mIU/L)',type:'number'}
+ ]},
+ musculoskeletal:{label:'Musculoskeletal problems',fields:[
+   {key:'area',label:'Area / Type',type:'text'},
+   {key:'since',label:'Since (year / duration)',type:'text'},
+   {key:'severity',label:'Severity',type:'select',options:['Mild','Moderate','Severe']},
+   {key:'details',label:'Details',type:'text'}
+ ]},
+ existingchronic:{label:'Existing chronic illness',fields:[
+   {key:'illness',label:'Illness Name',type:'text'},
+   {key:'since',label:'Since (year / duration)',type:'text'},
+   {key:'details',label:'Details',type:'text'}
+ ]},
+ medications:{label:'Current medications',fields:[
+   {key:'name',label:'Medication Name',type:'text'},
+   {key:'dosage',label:'Dosage',type:'text'},
+   {key:'frequency',label:'Frequency',type:'text'},
+   {key:'since',label:'Since',type:'text'}
+ ]},
+ lifestyle:{label:'Relevant lifestyle factors',fields:[
+   {key:'smoking',label:'Smoking',type:'select',options:['Yes','No']},
+   {key:'alcohol',label:'Alcohol Use',type:'select',options:['Yes','No']},
+   {key:'tobacco',label:'Tobacco (chewing/other)',type:'select',options:['Yes','No']},
+   {key:'activity',label:'Physical Activity',type:'select',options:['Sedentary','Moderate','Active']},
+   {key:'diet',label:'Diet Notes',type:'text'}
+ ]},
+ eye:{label:'EYE',fields:[
+   {key:'findings',label:'Findings',type:'text'},
+   {key:'vision',label:'Vision Status',type:'select',options:['Normal','Corrected (Glasses/Lens)','Impaired']}
+ ]},
+ skin:{label:'SKIN',fields:[
+   {key:'findings',label:'Findings',type:'text'}
+ ]},
+ other:{label:'OTHER',fields:[
+   {key:'description',label:'Description',type:'text'}
+ ]}
+};
+const RISK_META={
+ GREEN:{cls:'green',label:'Green — Routine',action:'Routine periodic assessment + wellness programme.'},
+ YELLOW:{cls:'yellow',label:'Yellow — Risk Factor',action:'Lifestyle intervention + planned review (within 30 days).'},
+ ORANGE:{cls:'orange',label:'Orange — Medical Follow-up',action:'Referral + documented follow-up (within 7 days).'},
+ RED:{cls:'red',label:'Red — Urgent Attention',action:'Immediate / urgent medical assessment &amp; referral.'},
+ PENDING:{cls:'grey',label:'Pending Assessment',action:'No assessment recorded yet.'}
+};
+
+/* ---------- Icon set (minimal stroke icons, MD3-friendly) ---------- */
+const ICONS={
+ dashboard:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>',
+ register:'<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/>',
+ assessment:'<rect x="4" y="4" width="16" height="18" rx="2"/><path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/>',
+ vaccination:'<path d="M12 2c4.5 4.8 7 9.4 7 12.5A7 7 0 0 1 5 14.5C5 11.4 7.5 6.8 12 2z"/><line x1="12" y1="10" x2="12" y2="17"/><line x1="9" y1="13.5" x2="15" y2="13.5"/>',
+ exposure:'<path d="M12 2 1 21h22L12 2z"/><line x1="12" y1="9" x2="12" y2="13.5"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/>',
+ referral:'<polyline points="14 4 20 10 14 16"/><path d="M4 20v-6a4 4 0 0 1 4-4h12"/>',
+ wellness:'<path d="M12 21s-7.2-4.35-9.6-8.9C.7 8.4 2.7 4.3 6.9 4.3c2 0 3.6 1.4 5.1 3 1.5-1.6 3.1-3 5.1-3 4.2 0 6.2 4.1 4.5 7.8C19.2 16.65 12 21 12 21z"/>',
+ report:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+ database:'<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 5v6c0 1.66-4 3-9 3s-9-1.34-9-3V5"/><path d="M21 11v6c0 1.66-4 3-9 3s-9-1.34-9-3v-6"/>',
+ settings:'<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><circle cx="4" cy="12" r="2"/><circle cx="12" cy="10" r="2"/><circle cx="20" cy="14" r="2"/>',
+ search:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+ bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+ plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+ menu:'<line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>'
+};
+function icon(name,size){size=size||22;return '<svg viewBox="0 0 24 24" width="'+size+'" height="'+size+'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[name]||'')+'</svg>';}
+
+const NAV_ITEMS=[
+ {page:'dashboard',label:'Dashboard',icon:'dashboard'},
+ {page:'register',label:'Register',icon:'register'},
+ {page:'assessment',label:'Assessment',icon:'assessment'},
+ {page:'vaccination',label:'Vaccination',icon:'vaccination'},
+ {page:'exposure',label:'Exposure',icon:'exposure'},
+ {page:'referral',label:'Referral',icon:'referral'},
+ {page:'wellness',label:'Wellness',icon:'wellness'},
+ {page:'report',label:'Reporting',icon:'report'},
+ {page:'database',label:'Database',icon:'database'},
+ {page:'settings',label:'Settings',icon:'settings'}
+];
+function buildRail(){
+ document.getElementById('railItems').innerHTML=NAV_ITEMS.map(n=>
+  '<div class="rail-item" data-page="'+n.page+'" onclick="go(\''+n.page+'\')"><span class="pill">'+icon(n.icon,22)+'</span><span>'+n.label+'</span></div>'
+ ).join('');
+ document.getElementById('notifBtn').innerHTML=icon('bell',22);
+ document.getElementById('hamburgerBtn').innerHTML=icon('menu',22);
+ document.getElementById('fabIcon').innerHTML=icon('plus',24);
+ document.getElementById('miniIcExposure').innerHTML=icon('exposure',17);
+ document.getElementById('miniIcAssess').innerHTML=icon('assessment',17);
+ document.getElementById('miniIcReg').innerHTML=icon('register',17);
+}
+
+/* ---------- Ripple effect for MD3 buttons / rail items ---------- */
+function addRipple(el,ev){
+ const rect=el.getBoundingClientRect();
+ const size=Math.max(rect.width,rect.height);
+ const x=(ev.clientX!=null?ev.clientX:rect.left+rect.width/2)-rect.left-size/2;
+ const y=(ev.clientY!=null?ev.clientY:rect.top+rect.height/2)-rect.top-size/2;
+ const span=document.createElement('span');
+ span.className='ripple';
+ span.style.width=span.style.height=size+'px';
+ span.style.left=x+'px';span.style.top=y+'px';
+ span.style.background=el.classList.contains('filled')||el.classList.contains('dark')?'rgba(255,255,255,.45)':'rgba(18,87,184,.22)';
+ el.appendChild(span);
+ setTimeout(()=>span.remove(),550);
+}
+document.addEventListener('mousedown',ev=>{
+ const el=ev.target.closest('.btn,.rail-item,.mini-fab,.fab,.icon-btn');
+ if(el){ const prevPos=getComputedStyle(el).position; if(prevPos==='static') el.style.position='relative'; el.style.overflow=el.style.overflow||'hidden'; addRipple(el,ev); }
+});
+
+/* ---------- Navigation ---------- */
+function go(page){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ const target=document.getElementById(page);
+ if(target) target.classList.add('active');
+ document.querySelectorAll('.rail-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+ closeMenus();closeRail();
+ if(page!=='printPage') renderAll();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- Clickable dashboard tiles (stat-card data-nav / data-scroll) ---------- */
+function activateStatCard(card){
+ if(card.dataset.nav){ go(card.dataset.nav); }
+ else if(card.dataset.scroll){
+  const doScroll=()=>{ const el=document.getElementById(card.dataset.scroll); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); };
+  if(!document.getElementById('dashboard').classList.contains('active')){ go('dashboard'); setTimeout(doScroll,60); }
+  else doScroll();
+ }
+}
+document.addEventListener('click',ev=>{
+ const card=ev.target.closest('.stat-card[data-nav],.stat-card[data-scroll]');
+ if(card) activateStatCard(card);
+});
+document.addEventListener('keydown',ev=>{
+ if(ev.key!=='Enter'&&ev.key!==' ')return;
+ const card=ev.target.closest&&ev.target.closest('.stat-card[data-nav],.stat-card[data-scroll]');
+ if(card){ ev.preventDefault(); activateStatCard(card); }
+});
+
+/* ---------- Mobile rail toggle ---------- */
+function openRail(){document.getElementById('rail').classList.add('open');document.getElementById('railBackdrop').classList.add('show')}
+function closeRail(){document.getElementById('rail').classList.remove('open');document.getElementById('railBackdrop').classList.remove('show')}
+
+/* ---------- FAB speed dial ---------- */
+function toggleFab(){
+ const c=document.getElementById('fabContainer'),b=document.getElementById('fabBtn'),bg=document.getElementById('fabBackdrop');
+ const open=c.classList.toggle('open'); b.classList.toggle('open',open); bg.classList.toggle('show',open);
+}
+function closeFab(){document.getElementById('fabContainer').classList.remove('open');document.getElementById('fabBtn').classList.remove('open');document.getElementById('fabBackdrop').classList.remove('show')}
+
+/* ---------- Snackbar (Material toast) ---------- */
+let snackTimer=null;
+function toast(msg){
+ const sb=document.getElementById('snackbar');
+ sb.textContent=msg; sb.classList.add('show');
+ clearTimeout(snackTimer);
+ snackTimer=setTimeout(()=>sb.classList.remove('show'),3200);
+}
+
+/* ---------- Profile / notification menus ---------- */
+function closeMenus(){document.getElementById('profileMenu').classList.remove('show');document.getElementById('notifPanel').classList.remove('show')}
+function toggleProfileMenu(ev){ev.stopPropagation();document.getElementById('notifPanel').classList.remove('show');document.getElementById('profileMenu').classList.toggle('show')}
+function toggleNotifPanel(ev){ev.stopPropagation();document.getElementById('profileMenu').classList.remove('show');renderNotifPanel();document.getElementById('notifPanel').classList.toggle('show')}
+
+/* ============================================================
+   State
+   ============================================================ */
+let state=emptyState();
+function emptyState(){return {employees:[],assessments:[],exposures:[],referrals:[],wellness:[],holidays:DEFAULT_HOLIDAYS,satPolicy:'working',year:2026};}
+function normaliseState(s){
+ s=s||{};
+ s.employees=s.employees||[]; s.assessments=s.assessments||[]; s.exposures=s.exposures||[];
+ s.referrals=s.referrals||[]; s.wellness=s.wellness||[]; s.holidays=s.holidays||DEFAULT_HOLIDAYS;
+ s.satPolicy=s.satPolicy||'working'; s.year=s.year||2026;
+ return s;
+}
+
+/* ============================================================
+   Cloud database (Supabase) — replaces browser localStorage.
+   Each record is one row {id, data jsonb}; only changed rows are sent.
+   ============================================================ */
+const COLLECTIONS={employees:'staff_employees',assessments:'staff_assessments',exposures:'staff_exposures',referrals:'staff_referrals',wellness:'staff_wellness'};
+const SETTINGS_TABLE='staff_settings', SETTING_KEYS=['holidays','satPolicy','year'];
+let sb=null, dbReady=false, synced={}, syncing=false, syncQueued=false, pending=false, idleTimer=null;
+const recId=(coll,x)=>coll==='employees'?String(x.hrms).toLowerCase():x.id;
+
+function pill(msg,isErr){const p=document.getElementById('syncPill');if(!msg){p.style.display='none';return;}p.textContent=msg;p.className=isErr?'err':'';p.style.display='block';}
+function currentRows(){
+ const rows={};
+ for(const c in COLLECTIONS) for(const x of state[c]) rows[COLLECTIONS[c]+'|'+recId(c,x)]=x;
+ for(const k of SETTING_KEYS) rows[SETTINGS_TABLE+'|'+k]=state[k];
+ return rows;
+}
+async function pushChanges(){
+ if(!dbReady)return;
+ if(syncing){syncQueued=true;return;}
+ syncing=true;pending=true;
+ try{
+  do{
+   syncQueued=false;
+   const cur=currentRows(), up={}, del={};
+   for(const k in cur){const j=JSON.stringify(cur[k]);if(synced[k]!==j){const [t,id]=k.split('|');(up[t]=up[t]||[]).push({id,data:cur[k],_j:j});}}
+   for(const k in synced){if(!(k in cur)&&!k.startsWith(SETTINGS_TABLE+'|')){const [t,id]=k.split('|');(del[t]=del[t]||[]).push(id);}}
+   for(const t in up){
+    for(let i=0;i<up[t].length;i+=500){
+     const chunk=up[t].slice(i,i+500);
+     const {error}=await sb.from(t).upsert(chunk.map(r=>({id:r.id,data:r.data})),{onConflict:'id'});
+     if(error)throw error;
+     chunk.forEach(r=>{synced[t+'|'+r.id]=r._j;});
+    }
+   }
+   for(const t in del){
+    for(let i=0;i<del[t].length;i+=200){
+     const ids=del[t].slice(i,i+200);
+     const {error}=await sb.from(t).delete().in('id',ids);
+     if(error)throw error;
+     ids.forEach(id=>{delete synced[t+'|'+id];});
+    }
+   }
+  }while(syncQueued);
+  pending=false;pill('');
+ }catch(e){
+  console.error(e);pending=false;
+  pill('Not saved — check connection / login',true);
+  toast('Could not save to the database: '+(e.message||e));
+  setTimeout(pushChanges,15000);
+ }finally{syncing=false;}
+}
+window.addEventListener('beforeunload',ev=>{if(pending){ev.preventDefault();ev.returnValue='';}});
+function save(){ensureSchedule();ensureAssessmentIds();renderAll();pushChanges();}
+
+async function fetchAll(table){
+ let out=[],from=0;
+ for(;;){
+  const {data,error}=await sb.from(table).select('id,data').order('id').range(from,from+999);
+  if(error)throw error;
+  out=out.concat(data);
+  if(data.length<1000)break;
+  from+=1000;
+ }
+ return out;
+}
+async function loadFromDb(){
+ const st=emptyState();synced={};
+ for(const c in COLLECTIONS){
+  const rows=await fetchAll(COLLECTIONS[c]);
+  st[c]=rows.map(r=>r.data);
+  rows.forEach(r=>{synced[COLLECTIONS[c]+'|'+r.id]=JSON.stringify(r.data);});
+ }
+ const sets=await fetchAll(SETTINGS_TABLE);
+ sets.forEach(r=>{if(SETTING_KEYS.includes(r.id)){st[r.id]=r.data;synced[SETTINGS_TABLE+'|'+r.id]=JSON.stringify(r.data);}});
+ state=normaliseState(st);
+}
+function resetIdle(){clearTimeout(idleTimer);idleTimer=setTimeout(()=>{toast('Signed out due to inactivity.');signOut();},30*60*1000);}
+['click','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{if(dbReady)resetIdle();},{passive:true}));
+
+async function signOut(){
+ dbReady=false;clearTimeout(idleTimer);
+ try{await sb.auth.signOut();}catch(e){}
+ state=emptyState();synced={};
+ location.reload();
+}
+function showGate(msg){
+ document.getElementById('authGate').classList.add('show');
+ document.getElementById('authErr').textContent=msg||'';
+ document.getElementById('authBtn').disabled=false;
+}
+async function enterApp(){
+ const {data:ok,error:e1}=await sb.rpc('is_member');
+ if(e1||ok!==true){await sb.auth.signOut();showGate('This account is not authorised for the programme. Contact the administrator.');return;}
+ try{
+  await loadFromDb();
+ }catch(e){showGate('Could not load data: '+(e.message||e));return;}
+ /* one-time import of data saved by the old browser-only version */
+ try{
+  const old=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(old&&(old.employees||[]).length&&!state.employees.length&&confirm('Found '+old.employees.length+' staff records saved in this browser by the old version. Import them into the private database now?')){
+   state=normaliseState(old);
+  }
+ }catch(e){}
+ document.getElementById('authGate').classList.remove('show');
+ dbReady=true;resetIdle();
+ ensureSchedule();ensureAssessmentIds();renderAll();go('dashboard');
+ pushChanges();
+}
+async function initAuth(){
+ const cfg=window.APP_CONFIG||{};
+ if(!cfg.SUPABASE_URL||cfg.SUPABASE_URL.includes('YOUR-PROJECT')){showGate('Database not configured — edit config.js (see README).');return;}
+ /* session kept in sessionStorage: closing the tab signs the user out */
+ sb=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY,{auth:{storage:window.sessionStorage,persistSession:true,autoRefreshToken:true}});
+ const doLogin=async()=>{
+  const btn=document.getElementById('authBtn');btn.disabled=true;
+  const {error}=await sb.auth.signInWithPassword({email:document.getElementById('authEmail').value.trim(),password:document.getElementById('authPass').value});
+  if(error){showGate(error.message);return;}
+  document.getElementById('authPass').value='';
+  enterApp();
+ };
+ document.getElementById('authBtn').onclick=doLogin;
+ document.getElementById('authPass').addEventListener('keydown',ev=>{if(ev.key==='Enter')doLogin();});
+ const {data}=await sb.auth.getSession();
+ if(data.session)enterApp();else showGate('');
+}
+
+/* ---------- Date helpers ---------- */
+function iso(d){return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
+function parseDate(s){return new Date(s+'T00:00:00')}
+function addDays(s,n){let d=parseDate(s);d.setDate(d.getDate()+n);return iso(d)}
+function isWorkingDay(s){let d=parseDate(s),dow=d.getDay();if(dow===0)return false;if(dow===6&&state.satPolicy==='off')return false;return !state.holidays[s]}
+function nextWorkingDay(s){let d=parseDate(s);while(!isWorkingDay(iso(d)))d.setDate(d.getDate()+1);return iso(d)}
+function fmt(s){if(!s)return '—';let d=parseDate(s);return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}
+function daysUntil(s){return Math.ceil((parseDate(s)-new Date())/86400000)}
+function isSaturday(s){return parseDate(s).getDay()===6}
+
+/* ---------- Employee / assessment lookups ---------- */
+function employee(hrms){return state.employees.find(e=>String(e.hrms).toLowerCase()===String(hrms).toLowerCase())}
+function assessmentsFor(hrms){return state.assessments.filter(a=>String(a.hrms).toLowerCase()===String(hrms).toLowerCase()).sort((a,b)=>a.date.localeCompare(b.date))}
+function lastAssessment(hrms){return assessmentsFor(hrms).pop()}
+function currentBloodGroup(hrms){let a=lastAssessment(hrms);return (a&&a.bloodGroup)?a.bloodGroup:'—'}
+function ageFromDob(dob){
+ if(!dob)return 0;
+ let d=parseDate(dob),t=new Date(),age=t.getFullYear()-d.getFullYear();
+ let m=t.getMonth()-d.getMonth();
+ if(m<0||(m===0&&t.getDate()<d.getDate()))age--;
+ return age;
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function bmiOf(weight,heightCm){
+ let w=Number(weight),h=Number(heightCm);
+ if(!w||!h)return null;
+ return w/Math.pow(h/100,2);
+}
+
+/* ---------- Parameter helpers ---------- */
+function paramPresent(params,type){
+ let p=(params||[]).find(x=>x.type===type);
+ if(!p)return false;
+ let s=p.status;
+ if(s===undefined)return true;
+ return s!=='Screened - Not Present'&&s!=='Normal';
+}
+function isComorbid(e){
+ let a=lastAssessment(e.hrms);
+ if(!a)return false;
+ return CHRONIC_PARAM_TYPES.some(t=>paramPresent(a.parameters||[],t));
+}
+
+/* ---------- Risk classification (SOP -31) ---------- */
+function autoRisk(a,emp){
+ let bp=String(a.bp||'').split('/'),sys=Number(bp[0])||0,dia=Number(bp[1])||0;
+ let sugar=Number(a.sugar)||0, spo2=Number(a.spo2)||0;
+ let bmi=bmiOf(a.weight,emp&&emp.height);
+ let params=a.parameters||[];
+ let chronicPresent=CHRONIC_PARAM_TYPES.some(t=>paramPresent(params,t));
+ if((sys&&sys>=180)||(dia&&dia>=110)||(sugar&&sugar>=300)||(spo2&&spo2>0&&spo2<90)) return 'RED';
+ if(chronicPresent||(sys&&sys>=140)||(dia&&dia>=90)||(sugar&&sugar>=126&&sugar<300)) return 'ORANGE';
+ let lifestyleRisk=params.some(p=>p.type==='lifestyle'&&(p.smoking==='Yes'||p.tobacco==='Yes'||p.activity==='Sedentary'));
+ let minor=paramPresent(params,'eye')||paramPresent(params,'musculoskeletal')||paramPresent(params,'thyroid')||params.some(p=>p.type==='medications')||params.some(p=>p.type==='lifestyle'&&p.alcohol==='Yes');
+ if((bmi&&bmi>=25)||lifestyleRisk||minor) return 'YELLOW';
+ return 'GREEN';
+}
+function currentRisk(e){
+ let a=lastAssessment(e.hrms);
+ if(!a)return 'PENDING';
+ return a.risk||autoRisk(a,e);
+}
+function riskChip(level){let m=RISK_META[level]||RISK_META.PENDING;return '<span class="chip '+m.cls+'">'+m.label.split(' — ')[0]+'</span>';}
+
+/* ---------- Scheduling: 180-day cycle for normal staff; 90-day cycle for comorbid or 45+ staff (SOP -13) ---------- */
+function assessmentInterval(e){
+ if(Number(e.customIntervalDays)>0) return Number(e.customIntervalDays);
+ return (isComorbid(e)||ageFromDob(e.dob)>=PRIORITY_AGE)?PRIORITY_INTERVAL_DAYS:STANDARD_INTERVAL_DAYS;
+}
+function countAssignedOnDate(dateStr,excludeHrms){
+ return state.employees.filter(x=>(!excludeHrms||String(x.hrms).toLowerCase()!==String(excludeHrms).toLowerCase())&&x.assignedDueDate===dateStr).length;
+}
+function assignSlot(baseDateStr,excludeHrms){
+ let d=nextWorkingDay(baseDateStr);
+ while(countAssignedOnDate(d,excludeHrms)>=MAX_PER_DAY){d=nextWorkingDay(addDays(d,1));}
+ return d;
+}
+function ensureSchedule(){
+ state.employees.slice().sort((a,b)=>a.registrationDate.localeCompare(b.registrationDate)).forEach(e=>{
+  if(!e.assignedDueDate){
+   let base=lastAssessment(e.hrms)?.date||e.registrationDate;
+   e.assignedDueDate=assignSlot(addDays(base,assessmentInterval(e)),e.hrms);
+  }
+ });
+}
+function dueDate(e){return e.assignedDueDate||assignSlot(addDays(lastAssessment(e.hrms)?.date||e.registrationDate,assessmentInterval(e)),e.hrms)}
+function isDue(e){return dueDate(e)<=iso(new Date())}
+
+/* ============================================================
+   Rendering
+   ============================================================ */
+function renderAll(){
+ renderStats();renderDue();renderDb();renderHolidays();renderVaccination();renderExposure();
+ renderReferral();renderWellness();renderNotifBadge();renderSummaryReport();
+ if(document.getElementById('satPolicy')) satPolicy.value=state.satPolicy;
+ if(document.getElementById('calYear')) calYear.value=state.year;
+ if(document.getElementById('maxPerDayLbl')) maxPerDayLbl.textContent=MAX_PER_DAY;
+}
+
+function renderStats(){
+ statEmployees.textContent=state.employees.length;
+ statDone.textContent=state.assessments.length;
+ let due=state.employees.filter(isDue);
+ statDue.textContent=due.length;
+ statSoon.textContent=state.employees.filter(e=>{let n=daysUntil(dueDate(e));return n>=0&&n<=30}).length;
+ let counts={RED:0,ORANGE:0,YELLOW:0,GREEN:0,PENDING:0};
+ state.employees.forEach(e=>{let r=currentRisk(e);counts[r]=(counts[r]||0)+1});
+ statRed.textContent=counts.RED; statOrange.textContent=counts.ORANGE; statYellow.textContent=counts.YELLOW; statGreen.textContent=counts.GREEN;
+ renderQualityIndicators();
+}
+
+function renderQualityIndicators(){
+ const total=state.employees.length;
+ const baselineDone=state.employees.filter(e=>assessmentsFor(e.hrms).some(a=>a.type==='Joining/Baseline')).length;
+ const baselinePct=total?Math.round(baselineDone/total*100):0;
+ const periodicDone=state.employees.filter(e=>!isDue(e)).length;
+ const periodicPct=total?Math.round(periodicDone/total*100):0;
+ const needFollowup=state.referrals.length;
+ const followupDone=state.referrals.filter(r=>r.status==='Completed').length;
+ const followupPct=needFollowup?Math.round(followupDone/needFollowup*100):100;
+ const vaccDocumented=state.employees.filter(e=>e.vaccination&&(e.vaccination.hepb||e.vaccination.tetanus||e.vaccination.flu)).length;
+ const vaccPct=total?Math.round(vaccDocumented/total*100):0;
+ const wellnessAvgPct=state.wellness.length&&total?Math.round(state.wellness.reduce((s,w)=>s+(Number(w.participants)||0),0)/state.wellness.length/total*100):0;
+ const cards=[
+  {label:'Baseline Assessment Coverage',val:baselinePct,target:'Target ≥ 90%',nav:'database'},
+  {label:'Periodic Check-up Coverage',val:periodicPct,target:'Target ≥ 90%',scroll:'dueSection'},
+  {label:'Follow-up Completion',val:followupPct,target:'Target ≥ 80%',nav:'referral'},
+  {label:'Vaccination Documentation',val:vaccPct,target:'-19 coverage',nav:'vaccination'},
+  {label:'Wellness Participation (avg)',val:Math.min(wellnessAvgPct,100),target:'-27 tracked',nav:'wellness'},
+  {label:'Occupational Exposure Incidents',val:state.exposures.length,target:'Trend reviewed -41.6',isCount:true,nav:'exposure'}
+ ];
+ qiGrid.innerHTML=cards.map(c=>{
+  let good=c.isCount?true:c.val>=(c.target.includes('90')?90:c.target.includes('80')?80:0);
+  let navAttr=c.nav?' data-nav="'+c.nav+'"':(c.scroll?' data-scroll="'+c.scroll+'"':'');
+  return '<div class="card hoverable stat-card"'+navAttr+' tabindex="0" role="button" aria-label="'+esc(c.label)+'"><div class="label">'+esc(c.label)+'</div><div class="stat small" style="color:'+(c.isCount?'var(--on-surface)':(good?'var(--green)':'var(--orange)'))+'">'+(c.isCount?c.val:c.val+'%')+'</div><div class="target">'+esc(c.target)+'</div></div>';
+ }).join('');
+}
+
+function statusChipForDue(e){return isDue(e)?'<span class="chip red">Due</span>':'<span class="chip green">Up to date</span>';}
+
+function renderDue(){
+ if(!state.employees.length){dueTable.innerHTML='<div class="empty">No staff registered yet.</div>';return}
+ let rows=state.employees.slice().sort((a,b)=>dueDate(a).localeCompare(dueDate(b))).map(e=>{
+  let r=currentRisk(e);
+  return '<tr><td><b>'+esc(e.name)+'</b><br><span class="small">'+esc(e.hrms)+' · '+esc(e.category||'—')+'</span></td>'+
+   '<td>'+fmt(lastAssessment(e.hrms)?.date)+'</td>'+
+   '<td class="'+(isDue(e)?'due':'done')+'">'+fmt(dueDate(e))+'</td>'+
+   '<td>'+statusChipForDue(e)+'</td>'+
+   '<td>'+riskChip(r)+'</td></tr>';
+ }).join('');
+ dueTable.innerHTML='<div class="table-wrap"><table><thead><tr><th>Staff Member</th><th>Last Completed</th><th>Next Assessment</th><th>Schedule</th><th>Risk</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function renderDb(){
+ if(!state.employees.length){dbTable.innerHTML='<div class="empty">No staff registered yet.</div>';return}
+ dbTable.innerHTML='<div class="table-wrap"><table><thead><tr><th>Name</th><th>Staff Health ID</th><th>Category</th><th>Mobile</th><th>DOB</th><th>Age</th><th>Registered</th><th>Next Assessment</th><th>Schedule</th><th>Risk</th><th>Actions</th></tr></thead><tbody>'+
+ state.employees.map(e=>{
+  let key=encodeURIComponent(e.hrms);
+  return '<tr><td><b>'+esc(e.name)+'</b></td><td>'+esc(e.hrms)+'</td><td>'+esc(e.category||'—')+'</td><td>'+esc(e.mobile)+'</td><td>'+fmt(e.dob)+'</td><td>'+ageFromDob(e.dob)+'</td><td>'+fmt(e.registrationDate)+'</td><td class="'+(isDue(e)?'due':'done')+'">'+fmt(dueDate(e))+'</td><td>'+statusChipForDue(e)+'</td><td>'+riskChip(currentRisk(e))+'</td><td><div class="row-actions"><button class="btn sm tonal" onclick="editEmployee(decodeURIComponent(\''+key+'\'))">Edit</button><button class="btn sm danger" onclick="deleteEmployee(decodeURIComponent(\''+key+'\'))">Delete</button></div></td></tr>';
+ }).join('')+'</tbody></table></div>';
+}
+
+function renderHolidays(){
+ let hs=Object.entries(state.holidays).sort();
+ holidayTable.innerHTML='<div class="table-wrap"><table><thead><tr><th>Date</th><th>Holiday</th></tr></thead><tbody>'+hs.map(([d,n])=>'<tr><td>'+fmt(d)+'</td><td>'+esc(n)+'</td></tr>').join('')+'</tbody></table></div>';
+}
+
+/* ---------- Notifications ---------- */
+function renderNotifBadge(){
+ let dueCount=state.employees.filter(isDue).length;
+ let pendingReferrals=state.referrals.filter(r=>r.status!=='Completed').length;
+ let total=dueCount+pendingReferrals;
+ let notifBtn=document.getElementById('notifBtn');
+ let existing=notifBtn.querySelector('.badge-dot');
+ if(existing) existing.remove();
+ if(total>0){
+  let dot=document.createElement('span'); dot.className='badge-dot'; dot.textContent=total>99?'99+':total; notifBtn.appendChild(dot);
+ }
+}
+function renderNotifPanel(){
+ let due=state.employees.filter(isDue).slice(0,5);
+ let pendingReferrals=state.referrals.filter(r=>r.status!=='Completed').slice(0,5);
+ let redCases=state.employees.filter(e=>currentRisk(e)==='RED').slice(0,5);
+ let html='<h4>Notifications</h4>';
+ if(!due.length&&!pendingReferrals.length&&!redCases.length){html+='<div class="notif-item">No pending alerts.</div>';}
+ redCases.forEach(e=>html+='<div class="notif-item" style="background:var(--red-container)"><b>'+esc(e.name)+' — RED</b>Urgent attention required. Staff Health ID '+esc(e.hrms)+'.</div>');
+ due.forEach(e=>html+='<div class="notif-item" style="background:var(--surface-variant)"><b>'+esc(e.name)+'</b>Periodic assessment due '+fmt(dueDate(e))+'.</div>');
+ pendingReferrals.forEach(r=>{let e=employee(r.hrms);html+='<div class="notif-item" style="background:var(--orange-container)"><b>'+(e?esc(e.name):esc(r.hrms))+'</b>Follow-up pending — target '+fmt(r.targetDate)+'.</div>';});
+ notifPanel.innerHTML=html;
+}
+document.addEventListener('click',()=>closeMenus());
+
+/* ============================================================
+   Registration
+   ============================================================ */
+document.getElementById('regForm').onsubmit=e=>{
+ e.preventDefault();
+ let hrms=rHrms.value.trim(), name=rName.value.trim();
+ if(employee(hrms)){toast('This Staff Health ID is already registered.');return}
+ let reg={name,hrms,mobile:rMobile.value.trim(),dob:rDob.value,height:rHeight.value,category:rCategory.value,department:rDept.value.trim(),registrationDate:iso(new Date())};
+ reg.assignedDueDate=assignSlot(addDays(reg.registrationDate,assessmentInterval(reg)),reg.hrms);
+ state.employees.push(reg); save(); e.target.reset();
+ toast('Staff registered. Baseline assessment window opens now; next periodic cycle by '+fmt(dueDate(reg))+'.');
+ go('dashboard');
+};
+
+/* ============================================================
+   Generic search-with-suggestions
+   ============================================================ */
+function setupSearch(inputId,sugId,callback){
+ const input=document.getElementById(inputId), box=document.getElementById(sugId);
+ if(!input||!box)return;
+ const render=()=>{
+  const q=input.value.trim().toLowerCase();
+  box.innerHTML='';
+  if(!q)return;
+  const matches=state.employees.filter(e=>{
+   const name=String(e.name||'').toLowerCase(), hrms=String(e.hrms||'').toLowerCase();
+   return name.includes(q)||hrms.includes(q);
+  }).slice(0,10);
+  if(!matches.length){box.innerHTML='<div class="suggestion empty-result"><b>No registered staff found</b><span>Try another name or Staff Health ID.</span></div>';return;}
+  matches.forEach(e=>{
+   const d=document.createElement('div');
+   d.className='suggestion';
+   d.innerHTML='<b>'+esc(e.name)+'</b><span>ID: '+esc(e.hrms)+' · '+esc(e.category||'—')+' · DOB '+fmt(e.dob)+'</span>';
+   d.addEventListener('mousedown',ev=>ev.preventDefault());
+   d.addEventListener('click',()=>{box.innerHTML='';callback(e)});
+   box.appendChild(d);
+  });
+ };
+ input.addEventListener('input',render);
+ input.addEventListener('focus',()=>{if(input.value.trim())render()});
+ input.addEventListener('keydown',ev=>{
+  if(ev.key==='Enter'){
+   const q=input.value.trim().toLowerCase();
+   const exact=state.employees.find(e=>String(e.hrms).toLowerCase()===q||String(e.name).toLowerCase()===q);
+   if(exact){box.innerHTML='';callback(exact);ev.preventDefault();}
+  }
+  if(ev.key==='Escape')box.innerHTML='';
+ });
+}
+document.addEventListener('click',ev=>{
+ ['suggestions','reportSuggestions','headerSuggestions','expSuggestions','refSuggestions'].forEach(id=>{
+  const box=document.getElementById(id), input=box&&box.parentElement.querySelector('input');
+  if(box&&!box.contains(ev.target)&&ev.target!==input) box.innerHTML='';
+ });
+});
+
+setupSearch('globalSearch','suggestions',showSelected);
+setupSearch('reportSearch','reportSuggestions',showReport);
+setupSearch('headerSearch','headerSuggestions',e=>{go('assessment');document.getElementById('globalSearch').value=e.name+' — '+e.hrms;showSelected(e)});
+setupSearch('expSearch','expSuggestions',e=>{document.getElementById('expHrms').value=e.hrms;document.getElementById('expSearch').value=e.name+' — '+e.hrms;expSelectedLabel.textContent='Selected: '+e.name+' ('+e.hrms+')';});
+setupSearch('refSearch','refSuggestions',e=>{document.getElementById('refHrms').value=e.hrms;document.getElementById('refSearch').value=e.name+' — '+e.hrms;refSelectedLabel.textContent='Selected: '+e.name+' ('+e.hrms+')';});
+
+/* ============================================================
+   Assessment area (Issue page)
+   ============================================================ */
+/* Reusable read/edit table of a staff member's past assessments (most recent first) */
+function assessmentHistoryTableHtml(hrms){
+ let arr=assessmentsFor(hrms).slice().reverse();
+ if(!arr.length) return '<div class="empty">No assessment history available.</div>';
+ let rows=arr.map(a=>'<tr><td class="done">'+fmt(a.date)+'</td><td>'+esc(a.type||'—')+'</td><td>'+esc(a.bloodGroup||'—')+'</td><td>'+esc(a.weight||'—')+'</td><td>'+esc(a.bp||'—')+'</td><td>'+esc(a.sugar||'—')+'</td><td>'+riskChip(a.risk||'GREEN')+'</td><td>'+esc(a.remarks||'')+'</td><td><div class="row-actions"><button type="button" class="btn sm tonal" onclick="editAssessment(\''+a.id+'\')">View / Edit</button></div></td></tr>').join('');
+ return '<div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Blood Group</th><th>Weight</th><th>BP</th><th>Sugar</th><th>Risk</th><th>Remarks</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function showSelected(e){
+ let risk=currentRisk(e), meta=RISK_META[risk];
+ selectedEmployee.innerHTML='<div class="card" style="background:var(--surface-variant)"><b>'+esc(e.name)+'</b> · Staff Health ID '+esc(e.hrms)+' · '+esc(e.category||'—')+
+  '<br><span class="small">Mobile: '+esc(e.mobile)+' · DOB: '+fmt(e.dob)+' · Height: '+(e.height?e.height+' cm':'—')+' · Registered: '+fmt(e.registrationDate)+'</span>'+
+  '<div class="legend-row">'+statusChipForDue(e)+' <span class="chip '+meta.cls+'">'+meta.label+'</span></div></div>';
+ let a=lastAssessment(e.hrms);
+ let hist=assessmentsFor(e.hrms);
+ assessmentArea.innerHTML='<div class="card"><div class="section-title"><h2 style="font-size:17px">Assessment</h2><span class="small">Next due: '+fmt(dueDate(e))+'</span></div>'+
+  '<div class="actions"><button class="btn filled" onclick="openHealth(\''+esc(e.hrms)+'\')">Enter / Complete Assessment</button><button class="btn tonal" onclick="makeTicket(\''+esc(e.hrms)+'\')">Print / Download Assessment Sheet</button></div>'+
+  (a?'<p class="small mt16">Last completed: <b class="done">'+fmt(a.date)+'</b> · Type: '+esc(a.type||'—')+' · Blood Group: '+esc(a.bloodGroup||'—')+'</p>':'<p class="small mt16">No assessment completed yet — this will be recorded as the Baseline / Joining assessment.</p>')+'</div>'+
+  '<div class="card mt16"><div class="section-title"><h2 style="font-size:16px">Assessment History</h2><span class="small">'+hist.length+' record(s) — click "View / Edit" to open, review or correct any past entry</span></div>'+assessmentHistoryTableHtml(e.hrms)+'</div>';
+}
+
+let currentParams=[];
+function openHealth(hrms){
+ let e=employee(hrms); if(!e){toast('Staff not found.');return}
+ aHrms.value=e.hrms;
+ aId.value='';
+ healthModalTitle.textContent='New Staff Health Assessment';
+ healthSubmitBtn.textContent='Save Assessment';
+ deleteAssessmentBtn.style.display='none';
+ modalEmployee.innerHTML='<b>'+esc(e.name)+'</b> · Staff Health ID '+esc(e.hrms)+' · '+esc(e.category||'—')+' · Height '+(e.height?e.height+' cm':'—');
+ let a=lastAssessment(hrms);
+ document.getElementById('healthForm').reset();
+ aType.value=a?'Periodic':'Joining/Baseline';
+ aDate.value=iso(new Date());
+ aBMI.value='';
+ currentParams=[];
+ pParamType.value='';
+ paramSubForm.innerHTML='';
+ renderParamList();
+ buildOccHistoryGrid(a);
+ if(a && a.vaccination){vHepB.value=a.vaccination.hepb||'';vTetanus.value=a.vaccination.tetanus||'';vFlu.value=a.vaccination.flu||'';vCovid.value=a.vaccination.covid||'';vOther.value=a.vaccination.other||'';}
+ else if(e.vaccination){vHepB.value=e.vaccination.hepb||'';vTetanus.value=e.vaccination.tetanus||'';vFlu.value=e.vaccination.flu||'';vCovid.value=e.vaccination.covid||'';vOther.value=e.vaccination.other||'';}
+ riskSuggested.textContent='—'; riskSuggested.className='chip grey'; aRisk.value='GREEN'; aCreateReferral.checked=false;
+ healthModal.classList.add('show');
+}
+
+/* View / edit a specific past assessment record */
+function editAssessment(id){
+ let a=state.assessments.find(x=>x.id===id);
+ if(!a){toast('Assessment record not found.');return}
+ let e=employee(a.hrms);
+ if(!e){toast('Staff record not found.');return}
+ aHrms.value=a.hrms;
+ aId.value=a.id;
+ healthModalTitle.textContent='Edit Staff Health Assessment';
+ healthSubmitBtn.textContent='Update Assessment';
+ deleteAssessmentBtn.style.display='inline-flex';
+ modalEmployee.innerHTML='<b>'+esc(e.name)+'</b> · Staff Health ID '+esc(e.hrms)+' · '+esc(e.category||'—')+' · Height '+(e.height?e.height+' cm':'—')+
+  '<div class="legend-row"><span class="chip blue">Editing record dated '+fmt(a.date)+'</span></div>';
+ document.getElementById('healthForm').reset();
+ aType.value=a.type||'Periodic';
+ aDate.value=a.date;
+ aMO.value=a.mo||'';
+ aWeight.value=a.weight||'';
+ aBP.value=a.bp||'';
+ aPulse.value=a.pulse||'';
+ aWaist.value=a.waist||'';
+ aSpo2.value=a.spo2||'';
+ aSugar.value=a.sugar||'';
+ aBloodGroup.value=a.bloodGroup||'';
+ aRemarks.value=a.remarks||'';
+ let bmi=bmiOf(a.weight,e.height);
+ aBMI.value=bmi?bmi.toFixed(1):'';
+ currentParams=(a.parameters||[]).slice();
+ pParamType.value=''; paramSubForm.innerHTML='';
+ renderParamList();
+ buildOccHistoryGrid(a);
+ let v=a.vaccination||{};
+ vHepB.value=v.hepb||''; vTetanus.value=v.tetanus||''; vFlu.value=v.flu||''; vCovid.value=v.covid||''; vOther.value=v.other||'';
+ let r=a.risk||'GREEN';
+ aRisk.value=r; riskSuggested.textContent=RISK_META[r].label; riskSuggested.className='chip '+RISK_META[r].cls;
+ aCreateReferral.checked=false;
+ healthModal.classList.add('show');
+}
+
+function deleteAssessment(id){
+ let a=state.assessments.find(x=>x.id===id);
+ if(!a){toast('Assessment record not found.');return}
+ let e=employee(a.hrms);
+ if(!confirm('Delete the assessment dated '+fmt(a.date)+' for '+(e?e.name:a.hrms)+'? This action cannot be undone.'))return;
+ state.assessments=state.assessments.filter(x=>x.id!==id);
+ if(e){
+  let latest=lastAssessment(e.hrms);
+  e.assignedDueDate=assignSlot(addDays(latest?latest.date:e.registrationDate,assessmentInterval(e)),e.hrms);
+ }
+ save(); closeModal();
+ if(e) showSelected(e);
+ toast('Assessment record deleted.');
+}
+function closeModal(){healthModal.classList.remove('show')}
+
+function buildOccHistoryGrid(prevAssessment){
+ occHistoryGrid.innerHTML=OCC_HISTORY_FIELDS.map(f=>{
+  let prevVal=prevAssessment&&prevAssessment.occHistory?prevAssessment.occHistory[f.key]:'';
+  return '<div class="field"><label>'+esc(f.label)+'</label><select id="occ_'+f.key+'"><option value="">—</option><option'+(prevVal==='Yes'?' selected':'')+'>Yes</option><option'+(prevVal==='No'?' selected':'')+'>No</option></select></div>';
+ }).join('');
+}
+function collectOccHistory(){
+ let out={};
+ OCC_HISTORY_FIELDS.forEach(f=>{let el=document.getElementById('occ_'+f.key);out[f.key]=el?el.value:'';});
+ return out;
+}
+
+pParamType.onchange=()=>renderParamSubForm(pParamType.value);
+function renderParamSubForm(type){
+ if(!type){paramSubForm.innerHTML='';return}
+ let def=PARAM_DEFS[type];
+ paramSubForm.innerHTML=def.fields.map(f=>{
+  let id='pf_'+f.key;
+  if(f.type==='select') return '<div class="field"><label>'+esc(f.label)+'</label><select id="'+id+'"><option value="">—</option>'+f.options.map(o=>'<option value="'+esc(o)+'">'+esc(o)+'</option>').join('')+'</select></div>';
+  return '<div class="field"><label>'+esc(f.label)+'</label><input id="'+id+'" type="'+(f.type==='number'?'number':'text')+'"></div>';
+ }).join('');
+}
+function addParamEntry(){
+ let type=pParamType.value;
+ if(!type){toast('Please select a parameter first.');return}
+ let def=PARAM_DEFS[type], entry={type};
+ def.fields.forEach(f=>{let el=document.getElementById('pf_'+f.key);entry[f.key]=el?el.value.trim():''});
+ currentParams.push(entry);
+ pParamType.value='';paramSubForm.innerHTML='';
+ renderParamList();
+ refreshRiskSuggestion();
+}
+function removeParamEntry(idx){currentParams.splice(idx,1);renderParamList();refreshRiskSuggestion();}
+function paramSummary(entry){
+ let def=PARAM_DEFS[entry.type];
+ return def.fields.map(f=>entry[f.key]?f.label+': '+esc(entry[f.key]):null).filter(Boolean).join(' · ')||'No details entered';
+}
+function renderParamList(){
+ if(!currentParams.length){paramList.innerHTML='<p class="small">No parameters added yet.</p>';return}
+ paramList.innerHTML=currentParams.map((p,i)=>'<div class="card" style="padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;box-shadow:var(--el0);border:1px solid var(--outline-variant)"><div><b>'+esc(PARAM_DEFS[p.type].label)+'</b><br><span class="small">'+paramSummary(p)+'</span></div><button type="button" class="btn sm danger" onclick="removeParamEntry('+i+')">Remove</button></div>').join('');
+}
+
+function refreshRiskSuggestion(){
+ let emp=employee(aHrms.value);
+ let draft={weight:aWeight.value,bp:aBP.value,sugar:aSugar.value,spo2:aSpo2.value,parameters:currentParams};
+ let bmi=bmiOf(draft.weight,emp&&emp.height);
+ aBMI.value=bmi?bmi.toFixed(1):'';
+ let suggestion=autoRisk(draft,emp);
+ riskSuggested.textContent=RISK_META[suggestion].label;
+ riskSuggested.className='chip '+RISK_META[suggestion].cls;
+ aRisk.value=suggestion;
+ aCreateReferral.checked=(suggestion==='ORANGE'||suggestion==='RED');
+}
+['aWeight','aBP','aSugar','aSpo2'].forEach(id=>document.getElementById(id).addEventListener('input',refreshRiskSuggestion));
+
+function newAssessmentId(){return 'asmt_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function ensureAssessmentIds(){state.assessments.forEach(a=>{if(!a.id)a.id=newAssessmentId();});}
+
+healthForm.onsubmit=e=>{
+ e.preventDefault();
+ let hr=aHrms.value, emp=employee(hr), editingId=aId.value;
+ let vaccination={hepb:vHepB.value,tetanus:vTetanus.value,flu:vFlu.value,covid:vCovid.value,other:vOther.value.trim()};
+ let record={
+  id:editingId||newAssessmentId(),
+  hrms:hr,type:aType.value,date:aDate.value,mo:aMO.value.trim(),
+  weight:aWeight.value,bp:aBP.value,pulse:aPulse.value,waist:aWaist.value,spo2:aSpo2.value,sugar:aSugar.value,
+  bloodGroup:aBloodGroup.value,remarks:aRemarks.value,parameters:currentParams.slice(),
+  occHistory:collectOccHistory(),vaccination,risk:aRisk.value
+ };
+ if(editingId){
+  let idx=state.assessments.findIndex(a=>a.id===editingId);
+  if(idx>-1) state.assessments[idx]=record; else state.assessments.push(record);
+ } else {
+  state.assessments.push(record);
+ }
+ if(emp.vaccination===undefined||vaccination.hepb||vaccination.tetanus||vaccination.flu||vaccination.covid||vaccination.other) emp.vaccination=vaccination;
+ let latest=lastAssessment(emp.hrms);
+ emp.assignedDueDate=assignSlot(addDays(latest?latest.date:emp.registrationDate,assessmentInterval(emp)),emp.hrms);
+ if(!editingId && document.getElementById('aCreateReferral').checked){
+  let targetDays=aRisk.value==='RED'?1:aRisk.value==='ORANGE'?7:30;
+  state.referrals.push({id:'ref_'+Date.now(),hrms:hr,date:aDate.value,finding:aRemarks.value||(RISK_META[aRisk.value].label),advice:'',referredTo:'',targetDate:addDays(aDate.value,targetDays),status:'Pending',furtherAction:'',closureDate:''});
+ }
+ save(); closeModal(); showSelected(employee(hr));
+ toast(editingId?'Assessment updated.':'Assessment saved · '+RISK_META[aRisk.value].label+' · Next due '+fmt(dueDate(employee(hr))));
+};
+
+/* ============================================================
+   Employee edit / delete
+   ============================================================ */
+function editEmployee(hrms){
+ let e=employee(hrms); if(!e){toast('Staff not found.');return}
+ editOriginalHrms.value=e.hrms; editName.value=e.name; editHrms.value=e.hrms; editMobile.value=e.mobile;
+ editDob.value=e.dob; editHeight.value=e.height||''; editCategory.value=e.category||''; editDept.value=e.department||'';
+ editCustomInterval.value=e.customIntervalDays||'';
+ employeeModal.classList.add('show');
+}
+function closeEmployeeModal(){employeeModal.classList.remove('show')}
+employeeEditForm.onsubmit=e=>{
+ e.preventDefault();
+ let oldHr=editOriginalHrms.value.trim(), newHr=editHrms.value.trim(), nm=editName.value.trim();
+ let emp=employee(oldHr); if(!emp){toast('Staff record no longer exists.');closeEmployeeModal();return}
+ let duplicate=state.employees.some(x=>x.hrms.toLowerCase()===newHr.toLowerCase()&&x.hrms.toLowerCase()!==oldHr.toLowerCase());
+ if(duplicate){toast('Another staff member already has this Staff Health ID.');return}
+ emp.name=nm; emp.hrms=newHr; emp.mobile=editMobile.value.trim(); emp.dob=editDob.value; emp.height=editHeight.value;
+ emp.category=editCategory.value; emp.department=editDept.value.trim(); emp.customIntervalDays=editCustomInterval.value?Number(editCustomInterval.value):undefined;
+ if(oldHr.toLowerCase()!==newHr.toLowerCase()){
+  state.assessments.forEach(a=>{if(a.hrms.toLowerCase()===oldHr.toLowerCase())a.hrms=newHr});
+  state.exposures.forEach(x=>{if(x.hrms.toLowerCase()===oldHr.toLowerCase())x.hrms=newHr});
+  state.referrals.forEach(r=>{if(r.hrms.toLowerCase()===oldHr.toLowerCase())r.hrms=newHr});
+ }
+ emp.assignedDueDate=assignSlot(addDays(lastAssessment(emp.hrms)?.date||emp.registrationDate,assessmentInterval(emp)),emp.hrms);
+ save(); closeEmployeeModal();
+ ['globalSearch','headerSearch','reportSearch'].forEach(id=>{let el=document.getElementById(id);if(el)el.value=''});
+ selectedEmployee.innerHTML=''; assessmentArea.innerHTML=''; reportArea.innerHTML='<div class="empty">Select a staff member to view their health trend.</div>';
+ toast('Staff record updated.');
+};
+function deleteEmployee(hrms){
+ let e=employee(hrms); if(!e){toast('Staff not found.');return}
+ let count=state.assessments.filter(a=>a.hrms.toLowerCase()===e.hrms.toLowerCase()).length;
+ let msg='Delete '+e.name+' (Staff Health ID '+e.hrms+')?';
+ if(count) msg+=' This will also permanently delete '+count+' assessment record(s).';
+ msg+=' This action cannot be undone.';
+ if(!confirm(msg))return;
+ state.employees=state.employees.filter(x=>x.hrms.toLowerCase()!==e.hrms.toLowerCase());
+ state.assessments=state.assessments.filter(a=>a.hrms.toLowerCase()!==e.hrms.toLowerCase());
+ state.exposures=state.exposures.filter(x=>x.hrms.toLowerCase()!==e.hrms.toLowerCase());
+ state.referrals=state.referrals.filter(r=>r.hrms.toLowerCase()!==e.hrms.toLowerCase());
+ save();
+ selectedEmployee.innerHTML=''; assessmentArea.innerHTML=''; reportArea.innerHTML='<div class="empty">Select a staff member to view their health trend.</div>';
+ ['globalSearch','headerSearch','reportSearch'].forEach(id=>{let el=document.getElementById(id);if(el)el.value=''});
+ toast('Staff record and associated assessments deleted.');
+}
+
+/* ============================================================
+   Print ticket
+   ============================================================ */
+function makeTicket(hrms){
+ let e=employee(hrms), a=lastAssessment(hrms), due=dueDate(e), risk=currentRisk(e), meta=RISK_META[risk];
+ let paramsHtml=(a&&a.parameters&&a.parameters.length)?'<h3>Health Parameters</h3><div>'+a.parameters.map(p=>'<div class="ticket-row"><span>'+esc(PARAM_DEFS[p.type].label)+'</span><b>'+paramSummary(p)+'</b></div>').join('')+'</div>':'';
+ let occHtml=(a&&a.occHistory)?'<h3>Occupational History</h3><div class="ticket-grid">'+OCC_HISTORY_FIELDS.map(f=>'<div class="ticket-row"><span>'+esc(f.label)+'</span><b>'+esc(a.occHistory[f.key]||'—')+'</b></div>').join('')+'</div>':'';
+ let vaccHtml=(a&&a.vaccination)?'<h3>Vaccination</h3><div class="ticket-grid"><div class="ticket-row"><span>Hepatitis-B</span><b>'+esc(a.vaccination.hepb||'—')+'</b></div><div class="ticket-row"><span>Tetanus/Tdap</span><b>'+esc(a.vaccination.tetanus||'—')+'</b></div><div class="ticket-row"><span>Influenza</span><b>'+esc(a.vaccination.flu||'—')+'</b></div><div class="ticket-row"><span>COVID-19</span><b>'+esc(a.vaccination.covid||'—')+'</b></div></div>':'';
+ printTicket.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><div><h2>CHANDANNAGAR SUB DIVISION HOSPITAL</h2><div style="text-align:center;font-weight:800;margin-top:4px">STAFF HEALTH, WELL-BEING &amp; OCCUPATIONAL HEALTH PROGRAMME — ASSESSMENT SHEET</div></div><span class="staffmark">STAFF</span></div><hr>'+
+  '<div class="ticket-grid"><div class="ticket-row"><span>Name</span><b>'+esc(e.name)+'</b></div><div class="ticket-row"><span>Staff Health ID</span><b>'+esc(e.hrms)+'</b></div><div class="ticket-row"><span>Category</span><b>'+esc(e.category||'—')+'</b></div><div class="ticket-row"><span>Mobile</span><b>'+esc(e.mobile)+'</b></div><div class="ticket-row"><span>Date of Birth</span><b>'+fmt(e.dob)+' (Age '+ageFromDob(e.dob)+')</b></div><div class="ticket-row"><span>Height</span><b>'+(e.height?e.height+' cm':'—')+'</b></div><div class="ticket-row"><span>Registration Date</span><b>'+fmt(e.registrationDate)+'</b></div><div class="ticket-row"><span>Next Assessment</span><b style="color:'+(isDue(e)?'#B3261E':'#2E6B34')+'">'+fmt(due)+'</b></div></div>'+
+  '<h3>Health Assessment</h3><div class="ticket-grid"><div class="ticket-row"><span>Assessment Type</span><b>'+(a?esc(a.type||'—'):'Pending')+'</b></div><div class="ticket-row"><span>Assessment Date</span><b>'+(a?fmt(a.date):'Pending')+'</b></div><div class="ticket-row"><span>Blood Group</span><b>'+(a?esc(a.bloodGroup||'—'):'—')+'</b></div><div class="ticket-row"><span>Weight</span><b>'+(a?(a.weight||'—')+' kg':'—')+'</b></div><div class="ticket-row"><span>Blood Pressure</span><b>'+(a?(a.bp||'—'):'—')+'</b></div><div class="ticket-row"><span>Blood Sugar</span><b>'+(a?(a.sugar||'—')+' mg/dL':'—')+'</b></div><div class="ticket-row"><span>Risk Classification</span><b>'+meta.label+'</b></div></div>'+
+  occHtml+vaccHtml+paramsHtml+'<p><b>Remarks:</b> '+(a?esc(a.remarks||''):'')+'</p><p><b>Recommended action:</b> '+meta.action+'</p>'+
+  '<div style="margin-top:30px;display:flex;justify-content:space-between"><span>Staff Signature</span><span>Medical Officer / Authorized Signatory</span></div>';
+ go('printPage'); setTimeout(()=>window.print(),150);
+}
+
+/* ============================================================
+   Reporting — individual history
+   ============================================================ */
+function showReport(e){
+ reportArea.innerHTML='<h3>'+esc(e.name)+' <span class="small">Staff Health ID '+esc(e.hrms)+'</span></h3>'+
+  '<p class="small">Next assessment: <b class="'+(isDue(e)?'due':'done')+'">'+fmt(dueDate(e))+'</b> · Current risk: '+riskChip(currentRisk(e))+' · Blood Group: <b>'+esc(currentBloodGroup(e.hrms))+'</b></p>'+
+  '<div id="history" class="mt16"></div>';
+ history.innerHTML=assessmentHistoryTableHtml(e.hrms);
+}
+
+/* ============================================================
+   Reporting — All Staff Assessment Summary (blood group &
+   latest health parameters for every registered staff member)
+   ============================================================ */
+function healthParamsSummary(a){
+ if(!a||!a.parameters||!a.parameters.length) return '—';
+ return a.parameters.map(p=>PARAM_DEFS[p.type]?PARAM_DEFS[p.type].label:p.type).join(', ');
+}
+function populateHealthParamFilter(){
+ let sel=document.getElementById('filterHealthParam');
+ if(!sel||sel.options.length>1)return;
+ Object.keys(PARAM_DEFS).forEach(key=>{
+  let opt=document.createElement('option'); opt.value=key; opt.textContent=PARAM_DEFS[key].label; sel.appendChild(opt);
+ });
+}
+function summaryReportRows(){
+ return state.employees.slice().sort((x,y)=>x.name.localeCompare(y.name)).map(e=>{
+  let a=lastAssessment(e.hrms);
+  let bmi=a?bmiOf(a.weight,e.height):null;
+  return {
+   employee:e,assessment:a,
+   name:e.name,hrms:e.hrms,dept:e.department||e.category||'—',
+   bloodGroup:(a&&a.bloodGroup)?a.bloodGroup:'—',
+   age:ageFromDob(e.dob),
+   bp:a?(a.bp||'—'):'—', pulse:a?(a.pulse||'—'):'—',
+   sugar:a?(a.sugar||'—'):'—', spo2:a?(a.spo2||'—'):'—',
+   bmi:bmi?bmi.toFixed(1):'—',
+   risk:currentRisk(e),
+   params:healthParamsSummary(a),
+   paramTypes:(a&&a.parameters)?a.parameters.map(p=>p.type):[],
+   lastDate:a?fmt(a.date):'—'
+  };
+ });
+}
+function activeSummaryFilters(){
+ return {
+  bloodGroup:document.getElementById('filterBloodGroup')?filterBloodGroup.value:'',
+  param:document.getElementById('filterHealthParam')?filterHealthParam.value:'',
+  risk:document.getElementById('filterRisk')?filterRisk.value:''
+ };
+}
+function filteredSummaryRows(){
+ let f=activeSummaryFilters();
+ return summaryReportRows().filter(r=>
+  (!f.bloodGroup||r.bloodGroup===f.bloodGroup)&&
+  (!f.param||r.paramTypes.includes(f.param))&&
+  (!f.risk||r.risk===f.risk)
+ );
+}
+function clearSummaryFilters(){
+ ['filterBloodGroup','filterHealthParam','filterRisk'].forEach(id=>{let el=document.getElementById(id);if(el)el.value=''});
+ renderSummaryReport();
+}
+function renderSummaryReport(){
+ if(!document.getElementById('summaryReportTable'))return;
+ populateHealthParamFilter();
+ if(!state.employees.length){summaryReportTable.innerHTML='<div class="empty">No staff registered yet.</div>';summaryFilterCount.textContent='';return}
+ let all=summaryReportRows(), rows=filteredSummaryRows();
+ let f=activeSummaryFilters();
+ let filtersActive=f.bloodGroup||f.param||f.risk;
+ summaryFilterCount.textContent=filtersActive?('Showing '+rows.length+' of '+all.length+' staff'):(all.length+' staff total');
+ if(!rows.length){summaryReportTable.innerHTML='<div class="empty">No staff match the selected filters.</div>';return}
+ let trs=rows.map(r=>'<tr><td><b>'+esc(r.name)+'</b><br><span class="small">'+esc(r.hrms)+'</span></td><td>'+esc(r.dept)+'</td><td><b>'+esc(r.bloodGroup)+'</b></td><td>'+r.age+'</td><td>'+esc(r.bp)+'</td><td>'+esc(r.sugar)+'</td><td>'+esc(r.spo2)+'</td><td>'+esc(r.bmi)+'</td><td>'+riskChip(r.risk)+'</td><td>'+esc(r.params)+'</td><td>'+esc(r.lastDate)+'</td></tr>').join('');
+ summaryReportTable.innerHTML='<div class="table-wrap"><table><thead><tr><th>Staff</th><th>Dept/Category</th><th>Blood Group</th><th>Age</th><th>BP</th><th>Sugar</th><th>SpO₂</th><th>BMI</th><th>Risk</th><th>Health Parameters</th><th>Last Assessment</th></tr></thead><tbody>'+trs+'</tbody></table></div>';
+}
+function exportSummaryXlsx(){
+ let rows=filteredSummaryRows();
+ if(!rows.length){toast('No staff match the selected filters.');return}
+ let out=rows.map(r=>({Name:r.name,Staff_Health_ID:r.hrms,Department:r.dept,Blood_Group:r.bloodGroup,Age:r.age,Blood_Pressure:r.bp,Pulse:r.pulse,Blood_Sugar:r.sugar,SpO2:r.spo2,BMI:r.bmi,Risk_Classification:r.risk,Health_Parameters:r.params,Last_Assessment:r.lastDate}));
+ let wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(out),'Staff Summary');
+ XLSX.writeFile(wb,'Chandannagar_SD_Hospital_Staff_Assessment_Summary.xlsx');
+}
+function printSummaryReport(){
+ let rows=filteredSummaryRows();
+ if(!rows.length){toast('No staff match the selected filters.');return}
+ let f=activeSummaryFilters();
+ let filterNote=[];
+ if(f.bloodGroup)filterNote.push('Blood Group: '+f.bloodGroup);
+ if(f.param)filterNote.push('Health Parameter: '+(PARAM_DEFS[f.param]?PARAM_DEFS[f.param].label:f.param));
+ if(f.risk)filterNote.push('Risk: '+RISK_META[f.risk].label);
+ let trs=rows.map(r=>'<tr><td>'+esc(r.name)+'<br><span style="font-size:10px;color:#666">'+esc(r.hrms)+'</span></td><td>'+esc(r.dept)+'</td><td>'+esc(r.bloodGroup)+'</td><td>'+r.age+'</td><td>'+esc(r.bp)+'</td><td>'+esc(r.sugar)+'</td><td>'+esc(r.spo2)+'</td><td>'+esc(r.bmi)+'</td><td>'+RISK_META[r.risk].label+'</td><td>'+esc(r.params)+'</td><td>'+esc(r.lastDate)+'</td></tr>').join('');
+ printTicket.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><div><h2>CHANDANNAGAR SUB DIVISION HOSPITAL</h2><div style="text-align:center;font-weight:800;margin-top:4px">STAFF HEALTH, WELL-BEING &amp; OCCUPATIONAL HEALTH PROGRAMME — ALL STAFF ASSESSMENT SUMMARY</div></div></div><hr>'+
+  (filterNote.length?'<p style="font-size:11px;color:#444"><b>Filters applied:</b> '+esc(filterNote.join(' · '))+'</p>':'')+
+  '<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr>'+
+  ['Staff','Dept/Category','Blood Group','Age','BP','Sugar','SpO₂','BMI','Risk','Health Parameters','Last Assessment'].map(h=>'<th style="border:1px solid #999;padding:5px;text-align:left;background:#f0f0f0">'+h+'</th>').join('')+
+  '</tr></thead><tbody>'+trs.replace(/<td>/g,'<td style="border:1px solid #999;padding:5px">')+'</tbody></table>'+
+  '<p style="margin-top:16px;font-size:10px;color:#666">Generated on '+fmt(iso(new Date()))+' · '+rows.length+' staff record(s)</p>';
+ printTicket.className='';
+ go('printPage'); setTimeout(()=>{window.print();printTicket.className='ticket';},150);
+}
+
+/* ============================================================
+   Vaccination Register (SOP -19, Annexure III)
+   ============================================================ */
+function renderVaccination(){
+ if(!state.employees.length){vaccTable.innerHTML='<div class="empty">No staff registered yet.</div>';vaccGapNote.textContent='';return}
+ let gapCount=0;
+ let rows=state.employees.map(e=>{
+  let v=e.vaccination||{};
+  let gap=(!v.hepb||v.hepb==='Incomplete'||v.hepb==='Unknown')||(!v.tetanus||v.tetanus==='Due'||v.tetanus==='Unknown')||(!v.flu||v.flu==='Due'||v.flu==='Unknown');
+  if(gap)gapCount++;
+  return '<tr><td><b>'+esc(e.name)+'</b><br><span class="small">'+esc(e.hrms)+'</span></td><td>'+esc(e.department||e.category||'—')+'</td><td>'+esc(v.hepb||'Unknown')+'</td><td>'+esc(v.tetanus||'Unknown')+'</td><td>'+esc(v.flu||'Unknown')+'</td><td>'+esc(v.covid||'Unknown')+'</td><td>'+esc(v.other||'—')+'</td><td>'+(gap?'<span class="chip red">Gap</span>':'<span class="chip green">Complete</span>')+'</td><td><button class="btn sm tonal" onclick="openHealth(\''+esc(e.hrms)+'\');go(\'assessment\')">Update</button></td></tr>';
+ }).join('');
+ vaccGapNote.textContent=gapCount+' of '+state.employees.length+' staff have a documented vaccination gap.';
+ vaccTable.innerHTML='<div class="table-wrap"><table><thead><tr><th>Staff</th><th>Dept/Category</th><th>Hep-B</th><th>Tetanus/Tdap</th><th>Influenza</th><th>COVID-19</th><th>Other</th><th>Status</th><th>Action</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function exportVaccinationXlsx(){
+ let rows=state.employees.map(e=>{let v=e.vaccination||{};return {Name:e.name,Staff_Health_ID:e.hrms,Department:e.department||e.category||'',HepB:v.hepb||'Unknown',Tetanus_Tdap:v.tetanus||'Unknown',Influenza:v.flu||'Unknown',COVID19:v.covid||'Unknown',Other:v.other||''}});
+ let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Vaccination');
+ XLSX.writeFile(wb,'Chandannagar_SD_Hospital_Vaccination_Register.xlsx');
+}
+
+/* ============================================================
+   Occupational Exposure Register (SOP -17,20, Annexure IV)
+   ============================================================ */
+function openExposureModal(){document.getElementById('exposureForm').reset();expHrms.value='';expSelectedLabel.textContent='';expDate.value=iso(new Date());exposureModal.classList.add('show');}
+function closeExposureModal(){exposureModal.classList.remove('show')}
+exposureForm.onsubmit=e=>{
+ e.preventDefault();
+ if(!expHrms.value){toast('Please select the affected staff member.');return}
+ state.exposures.push({id:'exp_'+Date.now(),hrms:expHrms.value,date:expDate.value,type:expType.value,action:expAction.value.trim(),pep:expPep.value.trim(),referral:expReferral.value.trim(),preventive:expPreventive.value.trim(),status:'Open'});
+ save(); closeExposureModal();
+ toast('Exposure incident recorded. Reporting is never discouraged under this programme.');
+};
+function toggleExposureStatus(id){
+ let x=state.exposures.find(r=>r.id===id); if(!x)return;
+ x.status=x.status==='Open'?'Closed':'Open'; save();
+}
+function renderExposure(){
+ if(!state.exposures.length){exposureTable.innerHTML='<div class="empty">No occupational exposure incidents logged.</div>';return}
+ let rows=state.exposures.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>{
+  let e=employee(x.hrms);
+  return '<tr><td>'+fmt(x.date)+'</td><td><b>'+(e?esc(e.name):esc(x.hrms))+'</b><br><span class="small">'+esc(x.hrms)+'</span></td><td>'+esc(x.type)+'</td><td>'+esc(x.action||'—')+'</td><td>'+esc(x.pep||'—')+'</td><td>'+esc(x.referral||'—')+'</td><td>'+esc(x.preventive||'—')+'</td><td>'+(x.status==='Open'?'<span class="chip orange">Open</span>':'<span class="chip green">Closed</span>')+'</td><td><button class="btn sm tonal" onclick="toggleExposureStatus(\''+x.id+'\')">Mark '+(x.status==='Open'?'Closed':'Open')+'</button></td></tr>';
+ }).join('');
+ exposureTable.innerHTML='<div class="table-wrap"><table><thead><tr><th>Date</th><th>Staff</th><th>Exposure Type</th><th>Immediate Action</th><th>Investigation/PEP</th><th>Referral</th><th>Preventive Action</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+/* ============================================================
+   Referral & Follow-up Register (SOP -32-36, Annexure II)
+   ============================================================ */
+function openReferralModal(){document.getElementById('referralForm').reset();refId.value='';refHrms.value='';refSelectedLabel.textContent='';refDate.value=iso(new Date());refStatus.value='Pending';referralModal.classList.add('show');}
+function closeReferralModal(){referralModal.classList.remove('show')}
+referralForm.onsubmit=e=>{
+ e.preventDefault();
+ if(!refHrms.value){toast('Please select the staff member.');return}
+ let rec={id:refId.value||('ref_'+Date.now()),hrms:refHrms.value,date:refDate.value,finding:refFinding.value.trim(),advice:refAdvice.value.trim(),referredTo:refTo.value,targetDate:refTarget.value,status:refStatus.value,furtherAction:refFurther.value.trim(),closureDate:refClosure.value};
+ let idx=state.referrals.findIndex(r=>r.id===rec.id);
+ if(idx>-1) state.referrals[idx]=rec; else state.referrals.push(rec);
+ save(); closeReferralModal();
+ toast('Referral & follow-up entry saved.');
+};
+function editReferral(id){
+ let r=state.referrals.find(x=>x.id===id); if(!r)return;
+ let e=employee(r.hrms);
+ refId.value=r.id; refHrms.value=r.hrms; refSearch.value=e?e.name+' — '+e.hrms:r.hrms; refSelectedLabel.textContent=e?'Selected: '+e.name+' ('+e.hrms+')':'';
+ refDate.value=r.date; refTarget.value=r.targetDate||''; refFinding.value=r.finding||''; refAdvice.value=r.advice||'';
+ refTo.value=r.referredTo||''; refStatus.value=r.status||'Pending'; refFurther.value=r.furtherAction||''; refClosure.value=r.closureDate||'';
+ referralModal.classList.add('show');
+}
+function renderReferral(){
+ let pending=state.referrals.filter(r=>r.status!=='Completed').length;
+ referralNote.textContent=pending+' entr'+(pending===1?'y':'ies')+' pending follow-up.';
+ if(!state.referrals.length){referralTable.innerHTML='<div class="empty">No referral or follow-up entries yet.</div>';return}
+ let rows=state.referrals.slice().sort((a,b)=>(a.status==='Completed')-(b.status==='Completed')||a.targetDate.localeCompare(b.targetDate)).map(r=>{
+  let e=employee(r.hrms), overdue=r.status!=='Completed'&&r.targetDate&&r.targetDate<iso(new Date());
+  return '<tr><td><b>'+(e?esc(e.name):esc(r.hrms))+'</b><br><span class="small">'+esc(r.hrms)+'</span></td><td>'+fmt(r.date)+'</td><td>'+esc(r.finding||'—')+'</td><td>'+esc(r.referredTo||'—')+'</td><td class="'+(overdue?'due':'')+'">'+fmt(r.targetDate)+'</td><td>'+(r.status==='Completed'?'<span class="chip green">Completed</span>':overdue?'<span class="chip red">Overdue</span>':'<span class="chip orange">Pending</span>')+'</td><td><button class="btn sm tonal" onclick="editReferral(\''+r.id+'\')">Edit</button></td></tr>';
+ }).join('');
+ referralTable.innerHTML='<div class="table-wrap"><table><thead><tr><th>Staff</th><th>Date</th><th>Finding</th><th>Referred To</th><th>Target Follow-up</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+/* ============================================================
+   Saturday Wellness (SOP -23-29, Annexure V)
+   ============================================================ */
+function openWellnessModal(){document.getElementById('wellnessForm').reset();wDuration.value='2:00 PM – 3:00 PM';let d=new Date();while(d.getDay()!==6)d.setDate(d.getDate()-1);wDate.value=iso(d);wellnessModal.classList.add('show');}
+function closeWellnessModal(){wellnessModal.classList.remove('show')}
+wellnessForm.onsubmit=e=>{
+ e.preventDefault();
+ state.wellness.push({id:'wel_'+Date.now(),date:wDate.value,activity:wActivity.value,resource:wResource.value.trim(),duration:wDuration.value.trim(),participants:Number(wParticipants.value)||0,departments:wDepartments.value.trim(),outcome:wOutcome.value.trim()});
+ save(); closeWellnessModal();
+ toast('Saturday wellness session logged.');
+};
+function renderWellness(){
+ let sessions=state.wellness.slice().sort((a,b)=>b.date.localeCompare(a.date));
+ statSessions.textContent=sessions.length;
+ let totalAttend=sessions.reduce((s,w)=>s+(Number(w.participants)||0),0);
+ statAttend.textContent=totalAttend;
+ statAvgPart.textContent=sessions.length?Math.round(totalAttend/sessions.length):0;
+ let total=state.employees.length;
+ statPartPct.textContent=(sessions.length&&total)?Math.round(totalAttend/sessions.length/total*100)+'%':'0%';
+ if(!sessions.length){wellnessTable.innerHTML='<div class="empty">No Saturday wellness sessions logged yet.</div>';return}
+ let rows=sessions.map(w=>'<tr><td>'+fmt(w.date)+(isSaturday(w.date)?'':' <span class="chip yellow">non-Sat</span>')+'</td><td>'+esc(w.activity)+'</td><td>'+esc(w.resource||'—')+'</td><td>'+esc(w.duration||'—')+'</td><td>'+w.participants+'</td><td>'+esc(w.departments||'—')+'</td><td>'+esc(w.outcome||'—')+'</td></tr>').join('');
+ wellnessTable.innerHTML='<div class="table-wrap"><table><thead><tr><th>Date</th><th>Activity</th><th>Resource Person</th><th>Duration</th><th>Participants</th><th>Departments</th><th>Outcome</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+/* ============================================================
+   Settings: calendar policy
+   ============================================================ */
+satPolicy.onchange=()=>{state.satPolicy=satPolicy.value;save()};
+calYear.onchange=()=>{state.year=Number(calYear.value)||2026;save()};
+
+/* ============================================================
+   Excel / CSV / JSON import-export
+   ============================================================ */
+function rowsForExcel(){return state.employees.map(e=>({Name:e.name,Staff_Health_ID:e.hrms,Category:e.category||'',Department:e.department||'',Mobile:e.mobile,DOB:e.dob,Age:ageFromDob(e.dob),Height_cm:e.height||'',Blood_Group:currentBloodGroup(e.hrms),Registration_Date:e.registrationDate,Next_Assessment:dueDate(e),Schedule:isDue(e)?'DUE':'UP_TO_DATE',Risk_Classification:currentRisk(e),Last_Assessment:lastAssessment(e.hrms)?.date||''}))}
+function rowsForAssessmentsExcel(){return state.assessments.map(a=>({Staff_Health_ID:a.hrms,Date:a.date,Type:a.type||'',Blood_Group:a.bloodGroup||'',Weight_kg:a.weight,Blood_Pressure:a.bp,Pulse:a.pulse,Blood_Sugar:a.sugar,SpO2:a.spo2,Risk:a.risk||'',Remarks:a.remarks,Parameters:JSON.stringify(a.parameters||[])}))}
+function exportXlsx(){
+ let wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rowsForExcel()),'Staff');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rowsForAssessmentsExcel()),'Assessments');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(Object.entries(state.holidays).map(([date,holiday])=>({date,holiday}))),'Holidays');
+ XLSX.writeFile(wb,'Chandannagar_SD_Hospital_Staff_Health_Programme.xlsx');
+}
+function exportCsv(){let ws=XLSX.utils.json_to_sheet(rowsForExcel());let csv=XLSX.utils.sheet_to_csv(ws);downloadBlob(csv,'Chandannagar_SD_Hospital_Staff.csv','text/csv');}
+importFile.onchange=async ev=>{
+ let f=ev.target.files[0]; if(!f)return;
+ showBusy(true);
+ try{
+  let data=await f.arrayBuffer(); let wb=XLSX.read(data,{type:'array'}); let ws=wb.Sheets[wb.SheetNames[0]]; let arr=XLSX.utils.sheet_to_json(ws);
+  let imported=0;
+  arr.forEach(r=>{
+   let hr=String(r.Staff_Health_ID??r.HRMS_ID??r.HRMS??'').trim(); let nm=String(r.Name??'').trim();
+   if(!hr||!nm)return;
+   if(!employee(hr)){
+    let reg={name:nm,hrms:hr,mobile:String(r.Mobile??''),dob:excelDate(r.DOB),height:String(r.Height_cm??r.Height??''),category:String(r.Category??''),department:String(r.Department??''),registrationDate:excelDate(r.Registration_Date)||iso(new Date())};
+    reg.assignedDueDate=assignSlot(addDays(reg.registrationDate,assessmentInterval(reg)),reg.hrms);
+    state.employees.push(reg); imported++;
+   }
+  });
+  save(); toast(imported+' staff record(s) imported.');
+ } finally { showBusy(false); ev.target.value=''; }
+};
+holidayFile.onchange=async ev=>{
+ let f=ev.target.files[0]; if(!f)return;
+ showBusy(true);
+ try{
+  let data=await f.arrayBuffer(),wb=XLSX.read(data,{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],arr=XLSX.utils.sheet_to_json(ws);
+  let count=0;
+  arr.forEach(r=>{let d=excelDate(r.date??r.Date??r.DATE),n=String(r.holiday??r.Holiday??'Holiday');if(d){state.holidays[d]=n;count++}});
+  save(); toast(count+' holiday(s) imported.');
+ } finally { showBusy(false); ev.target.value=''; }
+};
+function excelDate(v){
+ if(!v)return '';
+ if(typeof v==='number'){let d=XLSX.SSF.parse_date_code(v);return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;}
+ let s=String(v).trim(); if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+ let d=new Date(s); return isNaN(d)?'':iso(d);
+}
+function downloadBlob(content,name,type){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function backupJson(){downloadBlob(JSON.stringify(state,null,2),'Chandannagar_SD_Hospital_Staff_Health_Backup.json','application/json');toast('Backup downloaded.');}
+restoreJson.onchange=ev=>{
+ let f=ev.target.files[0]; if(!f)return;
+ let r=new FileReader();
+ r.onload=()=>{try{if(!confirm('Restoring replaces ALL data in the database with this backup. Continue?'))return;state=normaliseState(JSON.parse(r.result));save();toast('Backup restored.');}catch(e){toast('Invalid JSON backup.');}};
+ r.readAsText(f);
+ ev.target.value='';
+};
+
+/* ---------- Busy indicator (linear progress under top bar) ---------- */
+function showBusy(on){
+ let existing=document.getElementById('busyBar');
+ if(on){
+  if(existing)return;
+  let bar=document.createElement('div'); bar.id='busyBar'; bar.className='linear'; bar.innerHTML='<span></span>';
+  document.querySelector('.topbar').insertAdjacentElement('afterend',bar);
+ } else if(existing){ existing.remove(); }
+}
+
+/* ============================================================
+   Wire up FAB / top bar / boot
+   ============================================================ */
+document.getElementById('fabBtn').addEventListener('click',toggleFab);
+document.getElementById('fabBackdrop').addEventListener('click',closeFab);
+document.getElementById('hamburgerBtn').addEventListener('click',openRail);
+document.getElementById('railBackdrop').addEventListener('click',closeRail);
+document.getElementById('notifBtn').addEventListener('click',toggleNotifPanel);
+document.getElementById('profileBtn').addEventListener('click',toggleProfileMenu);
+document.getElementById('profileMenu').addEventListener('click',ev=>ev.stopPropagation());
+document.getElementById('notifPanel').addEventListener('click',ev=>ev.stopPropagation());
+
+buildRail();
+initAuth();
+
+const bootMsgs=['Loading Staff Health Programme…','Preparing periodic assessment cycle…','Ready.'];
+let bootStep=0;
+const bootMsgEl=document.getElementById('bootMsg');
+const bootInterval=setInterval(()=>{bootStep++;if(bootStep<bootMsgs.length)bootMsgEl.textContent=bootMsgs[bootStep];},260);
+setTimeout(()=>{
+ clearInterval(bootInterval);
+ document.getElementById('bootScreen').classList.add('hide');
+ setTimeout(()=>document.getElementById('bootScreen').remove(),500);
+},780);
+</script>
+</body>
+</html>
